@@ -7,3 +7,4 @@ __pycache__/
 .pytest_cache/
 storage/
 .estado_testes.json
+portal/publico.json

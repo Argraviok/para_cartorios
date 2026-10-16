@@ -39,15 +39,20 @@ function donosDasPortas() {
   });
 }
 
-async function status() {
+async function publico() {
+  try { return JSON.parse(await readFile(join(portal, 'publico.json'), 'utf8')); } catch { return null; }
+}
+
+async function status(viaTunel) {
   const projetos = JSON.parse(await readFile(join(raiz, 'projetos.json'), 'utf8'));
+  const pub = viaTunel ? await publico() : null;
   const donos = await donosDasPortas();
   return Promise.all(projetos.map(async (p) => {
     const [api, web] = await Promise.all([aberta(p.api), aberta(p.web)]);
     const dono = donos[p.web] || donos[p.api] || '';
     const origem = !dono ? null : dono.startsWith(join(modulos, p.dir)) ? 'portal'
       : dono.includes(`/${p.dir}`) ? 'original' : 'outro';
-    return { ...p, no_ar: { api, web }, origem };
+    return { ...p, no_ar: { api, web }, origem, publico: pub?.modulos?.[p.slug] ?? null, via_tunel: !!viaTunel };
   }));
 }
 
@@ -55,12 +60,15 @@ const TIPOS = { '.html': 'text/html; charset=utf-8', '.json': 'application/json;
 
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  // Acesso pelo túnel chega com Host *.trycloudflare.com; local chega com localhost.
+  const viaTunel = !/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(req.headers.host || '');
   try {
     if (url.pathname === '/api/modulos') {
       res.writeHead(200, { 'Content-Type': TIPOS['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await status()));
+      return res.end(JSON.stringify(await status(viaTunel)));
     }
-    const arquivo = url.pathname === '/relatorio' ? join(raiz, 'dashboard.html') : join(portal, 'index.html');
+    // O relatório técnico mostra caminhos e detalhes desta máquina: só para acesso local.
+    const arquivo = url.pathname === '/relatorio' && !viaTunel ? join(raiz, 'dashboard.html') : join(portal, 'index.html');
     res.writeHead(200, { 'Content-Type': TIPOS['.html'], 'Cache-Control': 'no-store' });
     res.end(await readFile(arquivo));
   } catch (e) {

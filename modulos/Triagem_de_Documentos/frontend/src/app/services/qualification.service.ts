@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { Qualification } from '../models/qualification.model';
 
-export const API_URL = 'http://localhost:8030/api';
+export const API_URL = '/api';
 
 @Injectable({ providedIn: 'root' })
 export class QualificationService {

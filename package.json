@@ -6,6 +6,7 @@
     "dev": "node subir_todos.mjs",
     "todos": "node subir_todos.mjs",
     "painel": "python3 gerar_painel.py",
-    "testes": "python3 gerar_painel.py --testes"
+    "testes": "python3 gerar_painel.py --testes",
+    "compartilhar": "node compartilhar.mjs"
   }
 }

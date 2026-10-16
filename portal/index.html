@@ -94,7 +94,7 @@ h1{margin:0 0 4px;font-size:26px;letter-spacing:-.02em}
       <h1>Cartório AI</h1>
       <p class="sub">Todos os módulos num só lugar. Escolha um no menu.</p>
       <div class="grid" id="grid"></div>
-      <p class="hint">Para subir tudo: <code>cd ~/MVP_Cartorio && npm run dev</code> · <a href="/relatorio" target="_blank">Relatório técnico (testes, git)</a></p>
+      <p class="hint" id="hint">Para subir tudo: <code>cd ~/MVP_Cartorio && npm run dev</code> · <a href="/relatorio" target="_blank">Relatório técnico (testes, git)</a></p>
     </div>
   </section>
 </main>
@@ -107,7 +107,8 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>
 
 const estado = (m) => m.no_ar.web && m.no_ar.api ? 'on' : (m.no_ar.web || m.no_ar.api) ? 'half' : 'off';
 const rotulo = (m) => ({on:'No ar', half:'Parcial', off:'Parado'})[estado(m)] + (m.origem === 'original' ? ' (pasta original)' : '');
-const appUrl = (m) => `http://localhost:${m.web}${m.web_path}`;
+// Visitante pelo túnel usa o endereço público do módulo; localmente, localhost.
+const appUrl = (m) => m.via_tunel ? (m.publico ? m.publico.replace(/\/$/, '') + m.web_path : null) : `http://localhost:${m.web}${m.web_path}`;
 
 function desenharMenu(atual){
   $('nav').innerHTML = `<a href="#/" ${!atual?'aria-current="page"':''}><span class="dot on" style="visibility:hidden"></span>Visão geral</a><div class="sep"></div>` +
@@ -138,11 +139,14 @@ function mostrar(){
   $('bar-nome').textContent = m.nome;
   $('bar-dot').className = `dot ${estado(m)}`;
   $('bar-docs').href = `http://localhost:${m.api}/docs`;
-  $('bar-tab').href = appUrl(m);
+  $('bar-docs').style.display = m.via_tunel ? 'none' : '';
+  $('bar-tab').href = appUrl(m) || '#';
   const off = $('offline');
-  if (!m.no_ar.web){
+  if (!m.no_ar.web || !appUrl(m)){
     off.style.display = 'grid';
-    off.innerHTML = `<div><p><b>${esc(m.nome)}</b> não está rodando.</p><p>Suba tudo com <code>cd ~/MVP_Cartorio && npm run dev</code><br>ou só este: <code>node subir_todos.mjs ${esc(m.slug)}</code></p></div>`;
+    off.innerHTML = m.via_tunel
+      ? `<div><p><b>${esc(m.nome)}</b> não está disponível neste link no momento.</p></div>`
+      : `<div><p><b>${esc(m.nome)}</b> não está rodando.</p><p>Suba tudo com <code>cd ~/MVP_Cartorio && npm run dev</code><br>ou só este: <code>node subir_todos.mjs ${esc(m.slug)}</code></p></div>`;
     return;
   }
   off.style.display = 'none';
@@ -166,6 +170,7 @@ async function atualizar(){
     }
     const mudou = JSON.stringify(novos.map(estado)) !== JSON.stringify(MODS.map(estado));
     MODS = novos;
+    const h = $('hint'); if (h) h.style.display = MODS[0]?.via_tunel ? 'none' : '';
     if (mudou) mostrar(); else desenharMenu(location.hash.replace(/^#\/?/, '') || null);
   } catch(e){ /* portal reiniciando; tenta de novo no próximo ciclo */ }
 }

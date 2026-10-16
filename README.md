@@ -23,3 +23,15 @@ npm run testes       # roda os testes de todos os módulos e atualiza o relatór
 - Como as cópias usam as mesmas portas dos originais, não rode o original e a cópia do mesmo módulo ao mesmo tempo
   (o `npm run dev` pula módulos com porta ocupada).
 - Primeira vez numa máquina nova: em cada módulo, `npm run setup` (ou o passo a passo do README dele).
+
+## Compartilhar com outra pessoa (link temporário)
+
+Com o sistema no ar (`npm run dev`), em outro terminal:
+
+```bash
+npm run compartilhar
+```
+
+Abre túneis gratuitos do Cloudflare (`cloudflared`, instalado em `~/.local/bin`) e imprime o link do portal.
+O link funciona enquanto esta máquina estiver ligada com o sistema rodando; Ctrl+C derruba os túneis.
+Cada execução gera links novos. Não há login: quem tiver o link acessa — use só dados fictícios.
