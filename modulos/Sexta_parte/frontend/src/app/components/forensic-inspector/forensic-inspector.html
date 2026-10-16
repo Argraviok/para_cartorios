@@ -1,0 +1,171 @@
+@if (error()) {
+  <div class="card p-6 text-red-800">{{ error() }} <a routerLink="/" class="ml-2 underline">Voltar</a></div>
+}
+
+@if (audit(); as a) {
+  <div class="space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <a routerLink="/" class="text-sm text-slate-500 hover:text-slate-800">← Cockpit</a>
+        <h1 class="mt-1 text-2xl font-bold text-slate-900">Protocolo {{ a.protocol_number }}</h1>
+        <p class="text-sm text-slate-500">
+          {{ a.service_type }} · {{ a.document_type }} · {{ a.presenter_name || 'Apresentante não informado' }}
+          @if (a.presenter_cpf) { · CPF {{ a.presenter_cpf }} } · {{ a.created_at | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+      </div>
+      <span class="rounded-lg px-3 py-1.5 text-sm font-bold {{ decisionMeta[a.officer_decision].cls }}">
+        Despacho: {{ decisionMeta[a.officer_decision].label }}
+        @if (a.in_person_requested && a.officer_decision === 'PENDENTE') { · aguardando comparecimento }
+      </span>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-3">
+      <!-- Coluna principal -->
+      <div class="space-y-6 lg:col-span-2">
+        @if (tampering(); as t) {
+          <section class="card p-5">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <h2 class="font-semibold">Análise forense do documento</h2>
+                <span class="rounded px-2 py-0.5 text-xs font-semibold {{ status[t.status].cls }}">{{ status[t.status].label }} · {{ t.score }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm">
+                <div class="inline-flex overflow-hidden rounded-lg border border-slate-300">
+                  <button type="button" class="px-3 py-1" [class]="overlay === 'heatmap' ? 'bg-slate-900 text-white' : 'bg-white'" (click)="overlay = 'heatmap'">Mapa de adulteração</button>
+                  <button type="button" class="px-3 py-1" [class]="overlay === 'ela' ? 'bg-slate-900 text-white' : 'bg-white'" (click)="overlay = 'ela'">ELA clássico</button>
+                </div>
+                <label class="flex items-center gap-1 text-xs"><input type="checkbox" [(ngModel)]="showRegions" /> Regiões</label>
+              </div>
+            </div>
+
+            @if (urls().document) {
+              <div class="relative select-none overflow-hidden rounded-lg bg-slate-900">
+                <img [src]="urls().document" alt="Documento original" class="block w-full" draggable="false" />
+                @if (urls()[overlay]) {
+                  <img [src]="urls()[overlay]" alt="Mapa forense" class="absolute inset-0 h-full w-full" draggable="false"
+                       [style.clip-path]="'inset(0 0 0 ' + slider + '%)'" />
+                }
+                @if (showRegions) {
+                  @for (r of t.suspicious_regions; track $index) {
+                    <div class="pointer-events-none absolute border-2 border-red-500 bg-red-500/10" [style]="regionStyle(r)">
+                      <span class="absolute -top-5 left-0 rounded bg-red-600 px-1 text-[10px] font-bold text-white">{{ r.intensity }}σ</span>
+                    </div>
+                  }
+                }
+                <div class="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow" [style.left.%]="slider"></div>
+                <span class="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white">Original</span>
+                <span class="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white">{{ overlay === 'ela' ? 'ELA' : 'Mapa de calor' }}</span>
+              </div>
+              <input type="range" min="0" max="100" [(ngModel)]="slider" class="mt-3 w-full accent-slate-900" aria-label="Comparador original/mapa" />
+            } @else {
+              <div class="rounded-lg bg-slate-50 p-8 text-center text-sm text-slate-500">
+                {{ a.files.document === false ? 'Arquivos expurgados conforme política de retenção (LGPD).' : 'Carregando imagens…' }}
+              </div>
+            }
+
+            <ul class="mt-4 space-y-2">
+              @for (f of t.findings; track $index) {
+                <li class="flex gap-2 text-sm"><span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400"></span>{{ f }}</li>
+              } @empty {
+                <li class="text-sm text-slate-500">Nenhuma anomalia apontada.</li>
+              }
+            </ul>
+            <p class="mt-3 text-xs text-slate-400">
+              Origem: {{ t.source_format }} · ELA {{ t.ela_reliable ? 'confiável' : 'indicativo' }} ·
+              VLM {{ t.vlm_used ? 'utilizado' : 'não utilizado' }}
+              @if (t.vlm_error) { <span class="text-amber-700">({{ t.vlm_error }})</span> }
+            </p>
+          </section>
+        }
+
+        <app-signature-comparator [check]="a.checks.signature_matching"
+                                  [signatureUrl]="urls().signature ?? null" [cardUrl]="urls().signature_card ?? null" />
+
+        <div class="grid gap-6 md:grid-cols-2">
+          <section class="card p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="font-semibold">Procuração (CENSEC)</h2>
+              <span class="rounded px-2 py-0.5 text-xs font-semibold {{ status[a.checks.power_of_attorney_censec.status].cls }}">
+                {{ status[a.checks.power_of_attorney_censec.status].label }}
+              </span>
+            </div>
+            @if (a.checks.power_of_attorney_censec; as p) {
+              @if (p.status !== 'NAO_APLICAVEL') {
+                <dl class="grid grid-cols-2 gap-2 text-sm">
+                  <dt class="text-slate-500">Livro / Folha</dt><dd>{{ p.book || '—' }} / {{ p.page || '—' }}</dd>
+                  <dt class="text-slate-500">Ato</dt><dd>{{ p.act || '—' }}</dd>
+                  <dt class="text-slate-500">Origem</dt><dd>{{ p.origin_office || '—' }}</dd>
+                  <dt class="text-slate-500">Idade</dt><dd>{{ p.age_days !== null ? p.age_days + ' dias' : '—' }}</dd>
+                  <dt class="text-slate-500">Verificada na CENSEC</dt><dd>{{ p.verified_on_censec ? 'Sim' : 'Não' }}</dd>
+                </dl>
+              }
+              <ul class="mt-3 space-y-1 text-sm">@for (o of p.observations; track $index) { <li>{{ o }}</li> }</ul>
+            }
+          </section>
+          <section class="card p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="font-semibold">Biometria facial</h2>
+              <span class="rounded px-2 py-0.5 text-xs font-semibold {{ status[a.checks.facial_biometrics.status].cls }}">
+                {{ status[a.checks.facial_biometrics.status].label }}
+              </span>
+            </div>
+            <p class="text-sm text-slate-600">{{ a.checks.facial_biometrics.observation }}</p>
+          </section>
+        </div>
+      </div>
+
+      <!-- Coluna lateral: risco e decisão -->
+      <aside class="space-y-6">
+        <section class="card p-5">
+          <app-risk-gauge [score]="a.risk_score" [level]="a.risk_level" />
+          @if (a.risk_factors.length) {
+            <ul class="mt-4 space-y-1.5 text-sm">
+              @for (f of a.risk_factors; track $index) { <li class="flex gap-2"><span class="text-red-600">▲</span>{{ f }}</li> }
+            </ul>
+          }
+          <div class="mt-4 rounded-lg bg-slate-50 p-3 text-sm">
+            <div class="label">Parecer da IA</div>
+            {{ a.recommendation_to_officer }}
+          </div>
+        </section>
+
+        <section class="card p-5">
+          <h2 class="font-semibold">Despacho do Oficial</h2>
+          <p class="mb-4 mt-1 text-xs text-slate-500">
+            A IA é ferramenta de auxílio pericial. A decisão pela lavratura ou recusa é prerrogativa exclusiva e
+            indelegável do Oficial ou Escrevente autorizado.
+          </p>
+          @if (!isFinal()) {
+            <div class="space-y-2">
+              <button type="button" class="btn w-full bg-emerald-700 text-white hover:bg-emerald-600" (click)="pendingAction.set('APROVAR_FE_PUBLICA')">{{ actionLabel.APROVAR_FE_PUBLICA }}</button>
+              <button type="button" class="btn w-full bg-sky-700 text-white hover:bg-sky-600" (click)="pendingAction.set('SOLICITAR_PRESENCIAL')">{{ actionLabel.SOLICITAR_PRESENCIAL }}</button>
+              <button type="button" class="btn w-full bg-red-700 text-white hover:bg-red-600" (click)="pendingAction.set('REJEITAR_FALSIDADE')">{{ actionLabel.REJEITAR_FALSIDADE }}</button>
+            </div>
+          } @else {
+            <div class="rounded-lg p-3 text-sm font-semibold {{ decisionMeta[a.officer_decision].cls }}">
+              Ato {{ decisionMeta[a.officer_decision].label.toLowerCase() }} em {{ a.decided_at | date: 'dd/MM/yyyy HH:mm' }}
+            </div>
+          }
+
+          @if (a.decision_history.length) {
+            <div class="mt-5">
+              <div class="label">Log de auditoria</div>
+              <ol class="space-y-3 border-l-2 border-slate-200 pl-4">
+                @for (h of a.decision_history; track $index) {
+                  <li class="text-sm">
+                    <div class="font-semibold">{{ actionLabel[h.action] }}</div>
+                    <div class="text-xs text-slate-500">{{ h.officer_name }} · {{ h.decided_at | date: 'dd/MM/yyyy HH:mm:ss' }}</div>
+                    <div class="mt-1 text-slate-700">{{ h.notes }}</div>
+                  </li>
+                }
+              </ol>
+            </div>
+          }
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <app-decision-modal [action]="pendingAction()" [highRisk]="highRisk()" [busy]="deciding()" [error]="decisionError()"
+                      (confirm)="decide($event)" (cancel)="pendingAction.set(null); decisionError.set('')" />
+}

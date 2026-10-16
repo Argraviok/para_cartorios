@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    # Atlas Local: MongoDB + mongot, com suporte a Atlas Search ($search) em desenvolvimento.
+    image: mongodb/mongodb-atlas-local:8.0
+    hostname: mongodb
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+volumes:
+  mongo_data:
+  mongo_config:

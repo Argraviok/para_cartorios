@@ -1,0 +1,11 @@
+# MongoDB local para desenvolvimento. Em produção, use MONGODB_URI do MongoDB Atlas.
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27021:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

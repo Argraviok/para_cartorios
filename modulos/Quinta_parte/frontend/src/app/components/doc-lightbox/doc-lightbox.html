@@ -1,0 +1,106 @@
+<div class="fixed inset-0 z-50 flex bg-slate-950/85 backdrop-blur-sm" role="dialog" aria-modal="true" (click)="close.emit()">
+  <div class="flex min-h-0 flex-1 flex-col lg:flex-row" (click)="$event.stopPropagation()">
+    <!-- Imagem -->
+    <div class="relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-4">
+      @if (item().image_url; as url) {
+        @if (isPdf(url, item().content_type)) {
+          <iframe [src]="url | safeResource" class="h-full w-full rounded-lg bg-white" title="Documento PDF"></iframe>
+        } @else {
+          <img
+            [src]="url"
+            [alt]="item().doc_name"
+            class="rounded-lg shadow-2xl transition-transform duration-200"
+            [class]="zoom() ? 'max-w-none cursor-zoom-out' : 'max-h-full max-w-full cursor-zoom-in object-contain'"
+            (click)="zoom.set(!zoom())"
+          />
+        }
+      } @else {
+        <p class="text-sm text-slate-300">O cidadão ainda não enviou este documento.</p>
+      }
+      <button type="button" class="absolute top-1/2 left-3 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" (click)="prev.emit()" title="Anterior (←)">‹</button>
+      <button type="button" class="absolute top-1/2 right-3 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" (click)="next.emit()" title="Próximo (→)">›</button>
+    </div>
+
+    <!-- Parecer -->
+    <aside class="flex max-h-[45vh] w-full shrink-0 flex-col overflow-y-auto bg-white lg:max-h-none lg:w-96">
+      <header class="flex items-start justify-between gap-3 border-b border-stone-200 p-4">
+        <div>
+          <p class="text-[11px] font-medium tracking-wide text-slate-500 uppercase">Documento {{ position() }}</p>
+          <h2 class="text-base leading-snug font-semibold text-slate-900">{{ item().doc_name }}</h2>
+          <p class="mt-0.5 text-xs text-slate-500">{{ item().description }}</p>
+        </div>
+        <button type="button" class="rounded-md p-1 text-slate-400 hover:bg-stone-100 hover:text-slate-700" (click)="close.emit()" title="Fechar (Esc)">✕</button>
+      </header>
+
+      <div class="space-y-4 p-4 text-sm">
+        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" [class]="meta[item().status].cls">
+          {{ meta[item().status].icon }} {{ meta[item().status].label }}
+          @if (item().validated_by === 'attendant') {
+            · escrevente
+          } @else if (item().validated_by === 'ai') {
+            · IA
+          }
+        </span>
+
+        @if (item().ai_feedback) {
+          <div class="rounded-lg bg-stone-50 p-3 ring-1 ring-stone-200">
+            <p class="mb-1 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Parecer da IA</p>
+            <p class="leading-relaxed text-slate-700">{{ item().ai_feedback }}</p>
+          </div>
+        }
+
+        <dl class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+          <dt class="text-slate-500">Tipo identificado</dt>
+          <dd class="font-medium text-slate-800">{{ item().document_type_identified || '—' }}</dd>
+          <dt class="text-slate-500">Data de emissão</dt>
+          <dd class="font-medium text-slate-800">{{ formatDate(item().issue_date) }}</dd>
+          <dt class="text-slate-500">Prazo exigido</dt>
+          <dd class="font-medium text-slate-800">{{ item().max_age_days ? 'até ' + item().max_age_days + ' dias' : 'sem prazo' }}</dd>
+        </dl>
+
+        @if (item().status === 'REJEITADO' && item().rejection_reason) {
+          <p class="rounded-lg bg-rose-50 p-3 text-xs text-rose-800 ring-1 ring-rose-200">
+            <span class="font-semibold">Motivo da recusa:</span> {{ item().rejection_reason }}
+          </p>
+        }
+      </div>
+
+      @if (canReview()) {
+        <footer class="mt-auto space-y-2 border-t border-stone-200 p-4">
+          @if (rejecting()) {
+            <textarea
+              rows="3"
+              class="w-full rounded-lg border border-stone-300 p-2 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              placeholder="Motivo (será enviado ao cidadão), ex.: a foto cortou o verso do documento."
+              [value]="reason()"
+              (input)="reason.set($any($event.target).value)"
+            ></textarea>
+            <div class="flex gap-2">
+              <button type="button" class="flex-1 rounded-lg px-3 py-2 text-sm text-slate-600 ring-1 ring-stone-300 hover:bg-stone-50" (click)="rejecting.set(false)">Cancelar</button>
+              <button type="button" class="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50" [disabled]="busy() || !reason().trim()" (click)="confirmReject()">Recusar e avisar</button>
+            </div>
+          } @else {
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                [disabled]="busy() || item().status === 'VALIDADO'"
+                (click)="review.emit({ status: 'VALIDADO', reason: null })"
+              >
+                ✓ Validar
+              </button>
+              <button type="button" class="flex-1 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-rose-700 ring-1 ring-rose-300 hover:bg-rose-50 disabled:opacity-50" [disabled]="busy()" (click)="rejecting.set(true)">
+                Recusar
+              </button>
+            </div>
+            @if (item().status !== 'PENDENTE') {
+              <button type="button" class="w-full rounded-lg px-3 py-1.5 text-xs text-slate-500 hover:bg-stone-100" [disabled]="busy()" (click)="review.emit({ status: 'PENDENTE', reason: null })">
+                Pedir reenvio (volta para pendente)
+              </button>
+            }
+          }
+        </footer>
+      }
+    </aside>
+  </div>
+</div>

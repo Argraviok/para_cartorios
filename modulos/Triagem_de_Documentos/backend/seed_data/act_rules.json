@@ -1,0 +1,82 @@
+[
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-01-QUALIF-PARTES",
+    "name": "Qualificação Completa das Partes",
+    "description": "Verificar se alienantes e adquirentes contêm nome completo, nacionalidade, estado civil, profissão, RG/órgão expedidor, CPF e domicílio/residência.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 215, § 1º, III, Código Civil"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-02-REGIME-OUTORGA",
+    "name": "Regime de Bens e Outorga Uxória/Marital",
+    "description": "Se o alienante for casado (exceto comunhão absoluta ou separação total convencional com pacto), verificar anuência e qualificação do cônjuge.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 1.647, I, Código Civil"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-03-DESC-IMOVEL",
+    "name": "Especialidade Objetiva do Imóvel",
+    "description": "Conferir se constam número de matrícula, livro/ficha, cartório de registro imobiliário competente, endereço completo, confrontações e área total.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 225, Lei 6.015/1973 (LRP)"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-04-CND-MUNICIPAL",
+    "name": "Certidão Negativa de Débitos Municipais (IPTU)",
+    "description": "Verificar a menção à CND de tributos municipais do imóvel ou certidão positiva com efeito de negativa dentro do prazo de validade.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 130, Parágrafo Único, CTN"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-05-GUIA-ITBI",
+    "name": "Recolhimento do ITBI",
+    "description": "Verificar menção expressa ao número da guia de ITBI, valor venal/base de cálculo, valor recolhido e data de autenticação bancária.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 289, Lei 6.015/1973 e Código Tributário Municipal"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-06-CERTIDAO-MATRICULA",
+    "name": "Validade da Certidão de Ônus Reais e Matrícula",
+    "description": "Checar se a certidão do Registro de Imóveis citada foi expedida há no máximo 30 dias contados da lavratura.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 1º, IV, Decreto Federal 93.240/1986"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-07-CNDT",
+    "name": "Certidão Negativa de Débitos Trabalhistas (CNDT)",
+    "description": "Verificar se foi apresentada CNDT dos vendedores ou se as partes dispensaram expressamente sua apresentação nos termos vigentes.",
+    "severity": "recomendavel",
+    "legal_ref": "Lei 12.440/2011"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-08-CONDOMINIO",
+    "name": "Quitação Condominial (se unidade autônoma)",
+    "description": "Se o imóvel for apartamento, vaga de garagem autônoma ou casa em condomínio edilício, verificar declaração de quitação do síndico ou dispensa expressa.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 2º, § 2º, Lei 7.433/1985"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-09-PRECO-CONDICOES",
+    "name": "Preço, Moeda Corrente e Forma de Pagamento",
+    "description": "Verificar o preço pactuado em moeda nacional corrente, forma de liquidação (PIX, TED, cheque) e quitação declarada ou cláusula resolutiva.",
+    "severity": "impeditiva",
+    "legal_ref": "Art. 481 e 504, Código Civil"
+  },
+  {
+    "act_type": "compra_e_venda_urbano",
+    "rule_code": "REG-10-DISPENSA-CERTIDOES",
+    "name": "Cláusula de Alerta de Feitos Ajuizados (Lei 13.097/15)",
+    "description": "Se os compradores dispensaram certidões de distribuições cíveis/criminais, verificar se consta cláusula de ciência dos riscos de evicção e fraude à execução.",
+    "severity": "recomendavel",
+    "legal_ref": "Art. 54, Lei Federal 13.097/2015"
+  }
+]

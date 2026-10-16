@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartório AI</title>
+<style>
+:root{
+  --bg:#f6f5f2; --surface:#ffffff; --surface-2:#f0eee9; --border:#e2dfd8;
+  --text:#1d1c1a; --muted:#6b6862; --accent:#3d5a80; --accent-soft:#e3eaf3;
+  --ok:#2f7a4f; --ok-soft:#e1f1e7; --warn:#9a6a12; --warn-soft:#f7ecd4; --off:#b5b1a8;
+  --side:#1f2a37; --side-text:#d9dee5; --side-muted:#8d99a8; --side-active:#2d3b4d;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141413; --surface:#1d1c1b; --surface-2:#262523; --border:#33312e;
+  --text:#ecebe8; --muted:#9c9890; --accent:#8fb0d8; --accent-soft:#22303f;
+  --ok:#78c79a; --ok-soft:#1b3326; --warn:#e0b45e; --warn-soft:#3a2f17; --off:#5a5752;
+  --side:#0f1419; --side-text:#d9dee5; --side-muted:#7d8896; --side-active:#1f2a37;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413; --surface:#1d1c1b; --surface-2:#262523; --border:#33312e;
+  --text:#ecebe8; --muted:#9c9890; --accent:#8fb0d8; --accent-soft:#22303f;
+  --ok:#78c79a; --ok-soft:#1b3326; --warn:#e0b45e; --warn-soft:#3a2f17; --off:#5a5752;
+  --side:#0f1419; --side-text:#d9dee5; --side-muted:#7d8896; --side-active:#1f2a37;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex}
+aside{width:240px;flex:none;background:var(--side);color:var(--side-text);display:flex;flex-direction:column;padding:18px 12px}
+.brand{font-weight:700;font-size:18px;padding:4px 10px 18px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--side-muted)}
+nav{display:flex;flex-direction:column;gap:2px}
+nav a{display:flex;align-items:center;gap:10px;color:var(--side-text);text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px}
+nav a:hover{background:var(--side-active)}
+nav a[aria-current="page"]{background:var(--side-active);font-weight:600}
+nav .sep{height:1px;background:var(--side-active);margin:8px 4px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--off);flex:none}
+.dot.on{background:#5fd08e} .dot.half{background:#e0b45e}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px;padding:0 10px;font-size:12px;color:var(--side-muted)}
+.side-foot button{background:none;border:1px solid var(--side-active);color:var(--side-text);border-radius:6px;padding:5px 8px;cursor:pointer;font:inherit}
+main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh}
+.bar{display:none;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--surface);font-size:14px}
+.bar b{font-size:15px}
+.bar .grow{flex:1}
+.bar a{color:var(--accent);text-decoration:none;font-size:13px}
+.frames{flex:1;position:relative;display:none}
+.frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}
+.offline{position:absolute;inset:0;display:none;place-items:center;text-align:center;color:var(--muted);padding:24px}
+.offline code{background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--text)}
+#home{flex:1;overflow:auto}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 16px 48px}
+h1{margin:0 0 4px;font-size:26px;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit}
+.card:hover{border-color:var(--accent)}
+.card-top{display:flex;align-items:center;gap:10px}
+.card h2{margin:0;font-size:16px;flex:1}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.pill{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.on{background:var(--ok-soft);color:var(--ok)} .pill.half{background:var(--warn-soft);color:var(--warn)}
+.hint{margin-top:24px;color:var(--muted);font-size:13px}
+.hint code{background:var(--surface-2);padding:1px 5px;border-radius:4px}
+@media (max-width:760px){
+  body{flex-direction:column}
+  aside{width:auto;padding:10px 12px}
+  .brand{padding:0 4px 8px}
+  nav{flex-direction:row;overflow-x:auto;gap:4px}
+  nav a{white-space:nowrap}
+  nav .sep,.side-foot{display:none}
+  main{height:auto;flex:1;min-height:0}
+}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">Cartório AI<small>Sistema integrado</small></div>
+  <nav id="nav"></nav>
+  <div class="side-foot">
+    <span id="resumo"></span>
+    <button id="theme">Alternar tema</button>
+  </div>
+</aside>
+<main>
+  <div class="bar" id="bar">
+    <span class="dot" id="bar-dot"></span><b id="bar-nome"></b>
+    <span class="grow"></span>
+    <a id="bar-docs" target="_blank" rel="noopener">API docs</a>
+    <a id="bar-tab" target="_blank" rel="noopener">Abrir em nova aba ↗</a>
+  </div>
+  <div class="frames" id="frames"><div class="offline" id="offline"></div></div>
+  <section id="home">
+    <div class="wrap">
+      <h1>Cartório AI</h1>
+      <p class="sub">Todos os módulos num só lugar. Escolha um no menu.</p>
+      <div class="grid" id="grid"></div>
+      <p class="hint">Para subir tudo: <code>cd ~/MVP_Cartorio && npm run dev</code> · <a href="/relatorio" target="_blank">Relatório técnico (testes, git)</a></p>
+    </div>
+  </section>
+</main>
+
+<script>
+let MODS = [];
+const frames = {};          // slug -> iframe (criado na 1ª visita e mantido, para não perder o estado ao trocar de módulo)
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const estado = (m) => m.no_ar.web && m.no_ar.api ? 'on' : (m.no_ar.web || m.no_ar.api) ? 'half' : 'off';
+const rotulo = (m) => ({on:'No ar', half:'Parcial', off:'Parado'})[estado(m)] + (m.origem === 'original' ? ' (pasta original)' : '');
+const appUrl = (m) => `http://localhost:${m.web}${m.web_path}`;
+
+function desenharMenu(atual){
+  $('nav').innerHTML = `<a href="#/" ${!atual?'aria-current="page"':''}><span class="dot on" style="visibility:hidden"></span>Visão geral</a><div class="sep"></div>` +
+    MODS.map(m => `<a href="#/${m.slug}" ${atual===m.slug?'aria-current="page"':''} title="${esc(rotulo(m))}"><span class="dot ${estado(m)}"></span>${esc(m.nome)}</a>`).join('');
+  const n = MODS.filter(m => estado(m)==='on').length;
+  $('resumo').textContent = `${n} de ${MODS.length} módulos no ar`;
+}
+
+function desenharHome(){
+  $('grid').innerHTML = MODS.map(m => `<a class="card" href="#/${m.slug}">
+    <div class="card-top"><span class="dot ${estado(m)}"></span><h2>${esc(m.nome)}</h2><span class="pill ${estado(m)}">${esc(rotulo(m))}</span></div>
+    <p>${esc(m.desc)}</p>
+    <span class="pill" style="align-self:flex-start">${esc(m.area)}</span>
+  </a>`).join('');
+}
+
+function mostrar(){
+  const slug = location.hash.replace(/^#\/?/, '');
+  const m = MODS.find(x => x.slug === slug);
+  desenharMenu(m?.slug);
+  for (const f of Object.values(frames)) f.style.display = 'none';
+  if (!m){
+    $('home').style.display = ''; $('bar').style.display = 'none'; $('frames').style.display = 'none';
+    desenharHome(); document.title = 'Cartório AI'; return;
+  }
+  document.title = `${m.nome} · Cartório AI`;
+  $('home').style.display = 'none'; $('bar').style.display = 'flex'; $('frames').style.display = 'block';
+  $('bar-nome').textContent = m.nome;
+  $('bar-dot').className = `dot ${estado(m)}`;
+  $('bar-docs').href = `http://localhost:${m.api}/docs`;
+  $('bar-tab').href = appUrl(m);
+  const off = $('offline');
+  if (!m.no_ar.web){
+    off.style.display = 'grid';
+    off.innerHTML = `<div><p><b>${esc(m.nome)}</b> não está rodando.</p><p>Suba tudo com <code>cd ~/MVP_Cartorio && npm run dev</code><br>ou só este: <code>node subir_todos.mjs ${esc(m.slug)}</code></p></div>`;
+    return;
+  }
+  off.style.display = 'none';
+  if (!frames[m.slug]){
+    const f = document.createElement('iframe');
+    f.src = appUrl(m); f.title = m.nome;
+    f.allow = 'clipboard-read; clipboard-write; camera; microphone; geolocation; fullscreen';
+    $('frames').appendChild(f); frames[m.slug] = f;
+  }
+  frames[m.slug].style.display = 'block';
+}
+
+async function atualizar(){
+  try {
+    const r = await fetch('/api/modulos', {cache:'no-store'});
+    const novos = await r.json();
+    // módulo que caiu: descarta o iframe, para recarregar limpo quando voltar
+    for (const m of novos){
+      const antes = MODS.find(x => x.slug === m.slug);
+      if (antes && antes.no_ar.web && !m.no_ar.web && frames[m.slug]){ frames[m.slug].remove(); delete frames[m.slug]; }
+    }
+    const mudou = JSON.stringify(novos.map(estado)) !== JSON.stringify(MODS.map(estado));
+    MODS = novos;
+    if (mudou) mostrar(); else desenharMenu(location.hash.replace(/^#\/?/, '') || null);
+  } catch(e){ /* portal reiniciando; tenta de novo no próximo ciclo */ }
+}
+
+const root = document.documentElement;
+try { const t = localStorage.getItem('portal-theme'); if (t) root.dataset.theme = t; } catch(e){}
+$('theme').addEventListener('click', () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('portal-theme', root.dataset.theme); } catch(e){}
+});
+
+addEventListener('hashchange', mostrar);
+atualizar().then(mostrar);
+setInterval(atualizar, 5000);
+</script>
+</body>
+</html>

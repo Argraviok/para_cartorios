@@ -1,0 +1,101 @@
+<div class="flex h-full flex-col">
+  <div class="space-y-3 border-b border-stone-200 p-4">
+    <div class="relative">
+      <input
+        type="search"
+        placeholder="Buscar nome, telefone ou protocolo"
+        class="w-full rounded-lg border border-stone-300 bg-white py-2 pr-3 pl-9 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+      <svg class="absolute top-2.5 left-3 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 3.38 9.84l3.64 3.64a.75.75 0 1 0 1.06-1.06l-3.64-3.64A5.5 5.5 0 0 0 9 3.5ZM5 9a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z" clip-rule="evenodd" />
+      </svg>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      @for (f of filters; track f.key) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition"
+          [class]="filter() === f.key ? 'bg-brand-700 text-white ring-brand-700' : 'bg-white text-slate-600 ring-stone-300 hover:bg-stone-50'"
+          (click)="filter.set(f.key)"
+        >
+          @if (f.dot) {
+            <span class="h-2 w-2 rounded-full" [class]="f.dot"></span>
+          }
+          {{ f.label }}
+          <span class="tabular-nums opacity-70">{{ counts()[f.key] }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <ul class="scroll-thin flex-1 divide-y divide-stone-200 overflow-y-auto">
+    @for (s of visible(); track s.protocol_id) {
+      <li>
+        <button
+          type="button"
+          class="relative w-full px-4 py-3 text-left transition hover:bg-white"
+          [class.bg-white]="s.protocol_id === selectedId()"
+          (click)="select.emit(s.protocol_id)"
+        >
+          @if (s.protocol_id === selectedId()) {
+            <span class="absolute inset-y-0 left-0 w-1 bg-brand-600"></span>
+          }
+          <div class="flex items-start gap-3">
+            <div class="relative shrink-0">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+                {{ initials(s.customer_name) }}
+              </div>
+              <span class="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-white" [class]="meta[s.status].dot"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-baseline justify-between gap-2">
+                <p class="truncate text-sm font-semibold text-slate-900">{{ s.customer_name || s.customer_contact }}</p>
+                <span class="shrink-0 text-xs text-slate-400">{{ timeAgo(s.updated_at, now()) }}</span>
+              </div>
+              <p class="truncate text-xs text-slate-500">
+                {{ s.act_name || 'Serviço ainda não identificado' }}
+                <span class="text-slate-300">·</span>
+                {{ s.channel === 'whatsapp' ? 'WhatsApp' : 'Webchat' }}
+              </p>
+              @if (s.last_message) {
+                <p class="mt-1 line-clamp-1 text-xs text-slate-600">
+                  @if (s.last_sender === 'user') {
+                    <span class="font-medium text-slate-800">Cidadão:</span>
+                  }
+                  {{ s.last_message }}
+                </p>
+              }
+              <div class="mt-2 flex items-center gap-2">
+                @if (s.status === 'human_takeover') {
+                  <span class="rounded px-1.5 py-0.5 text-[11px] font-semibold ring-1" [class]="meta[s.status].badge">
+                    {{ s.attendant_name ? 'Com ' + s.attendant_name : 'Solicitou atendente' }}
+                  </span>
+                }
+                @if (s.counter_ticket) {
+                  <span class="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">Senha {{ s.counter_ticket }}</span>
+                }
+                @if (s.docs_required) {
+                  <div class="flex min-w-0 flex-1 items-center gap-2">
+                    <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-stone-200">
+                      <div class="h-full rounded-full bg-emerald-500 transition-all" [style.width.%]="progress(s)"></div>
+                    </div>
+                    <span class="shrink-0 text-[11px] text-slate-500 tabular-nums">
+                      {{ s.docs_validated }} de {{ s.docs_required }} docs
+                      @if (s.docs_rejected) {
+                        <span class="text-rose-600">· {{ s.docs_rejected }} recusado{{ s.docs_rejected > 1 ? 's' : '' }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </button>
+      </li>
+    } @empty {
+      <li class="p-8 text-center text-sm text-slate-500">Nenhum atendimento neste filtro.</li>
+    }
+  </ul>
+</div>

@@ -1,0 +1,12 @@
+{
+  "name": "arquivo-digital",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "setup": "npm run setup:api && npm run setup:web",
+    "setup:api": "cd backend && (uv venv --python 3.12 .venv && uv pip install -p .venv -r requirements.txt || (python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)) && (test -f .env || cp .env.example .env)",
+    "setup:web": "cd frontend && npx -y npm@10.9.2 install",
+    "seed": "cd backend && .venv/bin/python seed_demo_data.py --reset"
+  }
+}

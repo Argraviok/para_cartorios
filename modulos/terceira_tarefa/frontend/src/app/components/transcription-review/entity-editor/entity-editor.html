@@ -1,0 +1,132 @@
+<form class="space-y-6" (submit)="$event.preventDefault(); submit(true)">
+  <!-- Confiança da IA -->
+  <div class="flex items-center justify-between rounded-lg border border-parchment-200 bg-parchment-50 p-3">
+    <div>
+      <div class="label mb-0">Confiança da leitura pela IA</div>
+      <div class="text-xs text-ink-500">{{ record().vlm_model ?? 'modelo não informado' }}</div>
+    </div>
+    <div class="text-right">
+      <div class="font-serif text-3xl font-semibold" [class]="confidenceTone()">{{ confidencePct() | number: '1.0-0' }}%</div>
+      @if (illegibleCount() > 0) {
+        <div class="text-xs font-medium text-warn">{{ illegibleCount() }} trecho(s) [ilegível]</div>
+      }
+    </div>
+  </div>
+
+  <!-- Metadados do assento -->
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="label" for="en">Nº do assento</label>
+      <input id="en" class="field" [value]="entryNumber()" (input)="entryNumber.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="label" for="ed">Data (ISO)</label>
+      <input id="ed" type="date" class="field" [class.border-danger]="dateInvalid()" [value]="entryDateIso()"
+             (input)="entryDateIso.set($any($event.target).value)" />
+    </div>
+    <div class="col-span-2">
+      <label class="label" for="edt">Data como escrita</label>
+      <input id="edt" class="field font-serif text-base italic" [value]="entryDateText()"
+             (input)="entryDateText.set($any($event.target).value)" />
+    </div>
+  </div>
+
+  <!-- Partes -->
+  <div>
+    <div class="mb-2 flex items-center justify-between">
+      <span class="label mb-0">Partes envolvidas</span>
+      <button type="button" class="text-xs font-medium text-sepia-600 hover:underline" (click)="addParty()">+ Adicionar parte</button>
+    </div>
+    <ul class="space-y-2">
+      @for (p of parties(); track $index; let i = $index) {
+        <li>
+          @if (editingParty() === i) {
+            <div class="space-y-2 rounded-lg border border-sepia-600/40 bg-white p-3 shadow-sm">
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="label" [for]="'role' + i">Papel</label>
+                  <input class="field" [id]="'role' + i" [value]="p.role" placeholder="adquirente"
+                         (input)="updateParty(i, 'role', $any($event.target).value)" />
+                </div>
+                <div class="col-span-2">
+                  <label class="label" [for]="'std' + i">Nome normalizado</label>
+                  <input class="field uppercase" [id]="'std' + i" [value]="p.name_standardized"
+                         (input)="updateParty(i, 'name_standardized', $any($event.target).value)" />
+                </div>
+              </div>
+              <div>
+                <label class="label" [for]="'orig' + i">Grafia original</label>
+                <input class="field font-serif text-base italic" [id]="'orig' + i" [value]="p.name_original"
+                       (input)="updateParty(i, 'name_original', $any($event.target).value)" />
+              </div>
+              <div class="flex justify-between">
+                <button type="button" class="text-xs text-danger hover:underline" (click)="removeParty(i)">Remover</button>
+                <button type="button" class="btn btn-ghost py-1 text-xs" (click)="editingParty.set(null)">Concluir</button>
+              </div>
+            </div>
+          } @else {
+            <button type="button" (click)="editingParty.set(i)" title="Clique para editar"
+                    class="group flex w-full items-center justify-between gap-3 rounded-lg border border-parchment-200 bg-white px-3 py-2 text-left hover:border-sepia-600/40">
+              <span class="min-w-0">
+                <span class="mr-2 inline-block rounded bg-parchment-100 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-sepia-700">{{ p.role || 'sem papel' }}</span>
+                <span class="font-medium">{{ p.name_standardized || '—' }}</span>
+                @if (p.name_original && p.name_original.toUpperCase() !== p.name_standardized) {
+                  <span class="block truncate font-serif text-sm text-ink-500 italic">orig.: {{ p.name_original }}</span>
+                }
+              </span>
+              <span class="text-xs text-ink-300 group-hover:text-sepia-600">editar</span>
+            </button>
+          }
+        </li>
+      } @empty {
+        <li class="rounded-lg border border-dashed border-parchment-300 p-3 text-center text-sm text-ink-500">Nenhuma parte extraída.</li>
+      }
+    </ul>
+  </div>
+
+  <!-- Confrontantes / filiação -->
+  <div>
+    <span class="label">{{ relativesLabel() }}</span>
+    <div class="flex flex-wrap gap-1.5">
+      @for (rel of relatives(); track $index; let i = $index) {
+        <span class="inline-flex items-center gap-1 rounded-full bg-parchment-100 py-1 pr-1 pl-2.5 text-sm">
+          {{ rel }}
+          <button type="button" class="rounded-full px-1.5 text-ink-500 hover:bg-parchment-200 hover:text-danger"
+                  [attr.aria-label]="'Remover ' + rel" (click)="removeRelative(i)">×</button>
+        </span>
+      }
+      <input class="field w-48 flex-none py-1" placeholder="Adicionar e Enter" [value]="newRelative()"
+             (input)="newRelative.set($any($event.target).value)"
+             (keydown.enter)="$event.preventDefault(); addRelative()" />
+    </div>
+  </div>
+
+  <!-- Transcrição -->
+  <div>
+    <label class="label" for="tr">Transcrição paleográfica (literal)</label>
+    <textarea id="tr" rows="14" class="field font-serif text-[17px] leading-relaxed" spellcheck="false"
+              [value]="transcription()" (input)="transcription.set($any($event.target).value)"></textarea>
+    <p class="mt-1 text-xs text-ink-500">
+      Mantenha a grafia da época (mez, escriptura, freguezia). Use <code>[ilegível]</code> para trechos não decifráveis.
+    </p>
+  </div>
+
+  <!-- Ações -->
+  <div class="sticky bottom-0 -mx-6 flex flex-wrap items-center justify-between gap-3 border-t border-parchment-200 bg-white/95 px-6 py-3 backdrop-blur">
+    <span class="text-xs text-ink-500">
+      @if (dirty()) { Alterações não salvas · } Ctrl+S salva · Ctrl+Enter homologa
+    </span>
+    <div class="flex gap-2">
+      @if (record().status === 'verified' && !dirty()) {
+        <button type="button" class="btn btn-ghost" [disabled]="saving()" (click)="reopen()">Reabrir revisão</button>
+      } @else {
+        <button type="button" class="btn btn-ghost" [disabled]="saving() || !dirty() || dateInvalid()" (click)="submit(false)">
+          Salvar correções
+        </button>
+      }
+      <button type="submit" class="btn btn-verify" [disabled]="saving() || dateInvalid() || (record().status === 'verified' && !dirty())">
+        {{ saving() ? 'Salvando…' : 'Homologar / Confirmar Registro' }}
+      </button>
+    </div>
+  </div>
+</form>

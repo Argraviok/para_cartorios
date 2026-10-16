@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Rótulos dos vértices no mapa */
+.vertex-label {
+  @apply rounded bg-slate-900/80 px-1.5 py-0.5 text-[11px] font-semibold text-white shadow;
+  border: none !important;
+}
+.vertex-label::before {
+  display: none;
+}
+.leaflet-tooltip.edge-tooltip {
+  @apply rounded-md border-0 bg-white px-2 py-1 text-xs font-medium text-slate-800 shadow-lg;
+}
+
+.leaflet-interactive:focus {
+  outline: none;
+}
+
+/* Modo de posicionamento: cursor de mira para escolher o ponto de amarração */
+.anchor-mode .leaflet-container {
+  cursor: crosshair;
+}

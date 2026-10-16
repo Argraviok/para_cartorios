@@ -1,0 +1,19 @@
+<div class="flex h-full flex-col">
+  <header class="border-b border-parchment-200 bg-white/80 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-screen-2xl items-center gap-8 px-4 sm:px-6">
+      <a routerLink="/" class="flex items-baseline gap-2">
+        <span class="font-serif text-xl font-semibold text-sepia-700">Arquivo Digital</span>
+        <span class="hidden text-xs text-ink-500 sm:inline">Acervo histórico do cartório</span>
+      </a>
+      <nav class="flex gap-1 text-sm">
+        <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="bg-parchment-100 text-ink-900"
+           class="rounded-md px-3 py-1.5 text-ink-500 hover:text-ink-900">Busca</a>
+        <a routerLink="/upload" routerLinkActive="bg-parchment-100 text-ink-900"
+           class="rounded-md px-3 py-1.5 text-ink-500 hover:text-ink-900">Digitalização em lote</a>
+      </nav>
+    </div>
+  </header>
+  <main class="min-h-0 flex-1">
+    <router-outlet />
+  </main>
+</div>

@@ -1,0 +1,111 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="mx-auto max-w-3xl space-y-6">
+  <div>
+    <h1 class="text-xl font-semibold">Nova nota devolutiva</h1>
+    <p class="mt-1 text-sm text-muted">
+      Informe o protocolo e marque os vícios encontrados na qualificação. Para cada vício, descreva os fatos concretos:
+      a minuta usa somente o que você escrever aqui.
+    </p>
+  </div>
+
+  <section class="rounded-lg border border-line bg-surface p-5">
+    <h2 class="mb-4 text-sm font-semibold">Protocolo</h2>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label>
+        <span class="label">Nº do protocolo</span>
+        <input class="field" formControlName="protocol_number" placeholder="184.920" inputmode="numeric" />
+        @if (showError(form.controls.protocol_number)) {
+          <span class="mt-1 block text-xs text-danger">Informe o número do protocolo.</span>
+        }
+      </label>
+      <label>
+        <span class="label">Data da prenotação</span>
+        <input class="field" type="date" formControlName="protocol_date" />
+      </label>
+      <label class="sm:col-span-2">
+        <span class="label">Título apresentado</span>
+        <input class="field" formControlName="act_type" list="act-types" />
+        <datalist id="act-types">
+          @for (t of actTypes; track t) { <option [value]="t"></option> }
+        </datalist>
+      </label>
+      <label>
+        <span class="label">Apresentante</span>
+        <input class="field" formControlName="presenter_name" placeholder="Nome do apresentante" />
+        @if (showError(form.controls.presenter_name)) {
+          <span class="mt-1 block text-xs text-danger">Informe o apresentante.</span>
+        }
+      </label>
+      <label>
+        <span class="label">UF</span>
+        <select class="field" formControlName="uf">
+          @for (uf of ufs; track uf) { <option [value]="uf">{{ uf }}</option> }
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="rounded-lg border border-line bg-surface p-5">
+    <h2 class="mb-1 text-sm font-semibold">Vícios encontrados</h2>
+    <p class="mb-4 text-xs text-muted">A nota reúne todas as exigências de uma só vez (art. 198 da LRP).</p>
+
+    @if (loadError()) {
+      <p class="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-danger">Não foi possível carregar a lista de vícios: {{ loadError() }}</p>
+    }
+
+    <div class="grid gap-2 sm:grid-cols-2">
+      @for (v of catalogued(); track v.code) {
+        <label class="flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm transition"
+               [class]="isSelected(v.code) ? 'border-accent bg-accent/5' : 'border-line'">
+          <input type="checkbox" class="mt-0.5 accent-accent" [checked]="isSelected(v.code)" (change)="toggle(v.code)" />
+          <span>{{ v.label }}</span>
+        </label>
+      }
+    </div>
+    <button type="button" class="btn mt-3" (click)="addOther()">+ Outro vício (texto livre)</button>
+
+    @if (issues.length) {
+      <div formArrayName="issues" class="mt-5 space-y-4 border-t border-line pt-5">
+        @for (g of issues.controls; track g; let i = $index) {
+          <div [formGroupName]="i" class="rounded-md border border-line bg-canvas p-4">
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <span class="text-sm font-semibold">
+                {{ g.controls.vicio_code.value === 'outro' ? 'Outro vício' : labelOf(g.controls.vicio_code.value) }}
+              </span>
+              <button type="button" class="text-xs text-muted hover:text-danger" (click)="remove(i)">Remover</button>
+            </div>
+            @if (g.controls.vicio_code.value === 'outro') {
+              <label class="mb-3 block">
+                <span class="label">Título do vício</span>
+                <input class="field" formControlName="title" placeholder="Ex.: Ausência de reconhecimento de firma" />
+                @if (showError(g.controls.title)) {
+                  <span class="mt-1 block text-xs text-danger">Informe o título.</span>
+                }
+              </label>
+              <p class="mb-3 text-xs text-warn-ink">Vícios fora do catálogo entram como exigência manual, sem fundamentação automática.</p>
+            }
+            <label class="block">
+              <span class="label">Fatos observados</span>
+              <textarea class="field min-h-24" formControlName="case_facts"
+                        placeholder="Descreva o que consta da matrícula e do título. Ex.: Na matrícula 12.345 o transmitente consta como solteiro; no título qualifica-se como casado."></textarea>
+              @if (showError(g.controls.case_facts)) {
+                <span class="mt-1 block text-xs text-danger">Descreva os fatos com pelo menos 20 caracteres.</span>
+              }
+            </label>
+          </div>
+        }
+      </div>
+    } @else if (submitted()) {
+      <p class="mt-4 text-sm text-danger">Marque ao menos um vício.</p>
+    }
+  </section>
+
+  @if (submitError()) {
+    <p class="rounded-md bg-red-50 px-3 py-2 text-sm text-danger" role="alert">{{ submitError() }}</p>
+  }
+
+  <div class="flex justify-end">
+    <button type="submit" class="btn btn-primary min-w-40" [disabled]="submitting()">
+      {{ submitting() ? 'Gerando minuta…' : 'Gerar minuta' }}
+    </button>
+  </div>
+</form>

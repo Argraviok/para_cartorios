@@ -1,0 +1,90 @@
+<div class="mx-auto max-w-3xl space-y-6">
+  <div>
+    <a routerLink="/" class="text-sm text-slate-500 hover:text-slate-800">← Cockpit</a>
+    <h1 class="mt-1 text-2xl font-bold text-slate-900">Nova auditoria antifraude</h1>
+    <p class="text-sm text-slate-500">Envie o documento apresentado no balcão e, se houver, o recorte da assinatura lançada no título.</p>
+  </div>
+
+  <form class="space-y-6" (ngSubmit)="submit()" #f="ngForm">
+    <section class="card space-y-4 p-6">
+      <h2 class="font-semibold">Ato</h2>
+      <div class="grid gap-4 md:grid-cols-3">
+        <div>
+          <label class="label" for="protocol">Protocolo *</label>
+          <input id="protocol" class="input" name="protocol_number" required [(ngModel)]="model.protocol_number" placeholder="219.040" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="label" for="service">Natureza do ato *</label>
+          <select id="service" class="input" name="service_type" [(ngModel)]="model.service_type">
+            @for (s of serviceTypes; track s[0]) { <option [value]="s[0]">{{ s[1] }}</option> }
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="card space-y-4 p-6">
+      <h2 class="font-semibold">Apresentante e documento</h2>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="label" for="name">Nome</label>
+          <input id="name" class="input" name="presenter_name" [(ngModel)]="model.presenter_name" />
+        </div>
+        <div>
+          <label class="label" for="cpf">CPF (localiza o cartão de firma)</label>
+          <input id="cpf" class="input" name="presenter_cpf" [(ngModel)]="model.presenter_cpf" placeholder="000.000.000-00" />
+        </div>
+        <div>
+          <label class="label" for="dtype">Tipo de documento</label>
+          <select id="dtype" class="input" name="document_type" [(ngModel)]="model.document_type">
+            <option value="RG">RG</option>
+            <option value="CNH">CNH</option>
+            <option value="PROCURACAO">Procuração</option>
+            <option value="OUTRO">Outro (título, contrato…)</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="doc">Documento (JPG, PNG ou PDF) *</label>
+          <input id="doc" type="file" accept="image/*,application/pdf" class="input" (change)="onFile($event, 'document')" />
+          <p class="mt-1 text-xs text-slate-500">Prefira o arquivo original da câmera/scanner: reconversões reduzem a eficácia do ELA.</p>
+        </div>
+        <div class="md:col-span-2">
+          <label class="label" for="sig">Recorte da assinatura no título (opcional)</label>
+          <input id="sig" type="file" accept="image/*" class="input" (change)="onFile($event, 'signature')" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card space-y-4 p-6">
+      <label class="flex items-center gap-2 font-semibold">
+        <input type="checkbox" name="hasProc" [(ngModel)]="hasProcuration" class="h-4 w-4" />
+        Ato praticado por procuração
+      </label>
+      @if (hasProcuration || model.document_type === 'PROCURACAO') {
+        <div class="grid gap-4 md:grid-cols-4">
+          <div><label class="label" for="pb">Livro</label><input id="pb" class="input" name="pb" [(ngModel)]="model.procuration_book" /></div>
+          <div><label class="label" for="pp">Folha</label><input id="pp" class="input" name="pp" [(ngModel)]="model.procuration_page" /></div>
+          <div><label class="label" for="pa">Ato</label><input id="pa" class="input" name="pa" [(ngModel)]="model.procuration_act" /></div>
+          <div><label class="label" for="pd">Lavrada em</label><input id="pd" type="date" class="input" name="pd" [(ngModel)]="model.procuration_issued_on" /></div>
+          <div class="md:col-span-2"><label class="label" for="po">Cartório de origem</label><input id="po" class="input" name="po" [(ngModel)]="model.procuration_origin_office" /></div>
+          <div class="md:col-span-2">
+            <label class="label" for="pc">Consulta CENSEC de não-revogação em</label>
+            <input id="pc" type="date" class="input" name="pc" [(ngModel)]="model.censec_confirmed_on" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-red-700 md:col-span-4">
+            <input type="checkbox" name="rev" [(ngModel)]="model.procuration_revocation_declared" class="h-4 w-4" />
+            Há revogação declarada/registrada
+          </label>
+        </div>
+      }
+    </section>
+
+    @if (error()) { <div class="rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</div> }
+
+    <div class="flex justify-end gap-3">
+      <a routerLink="/" class="btn-ghost">Cancelar</a>
+      <button type="submit" class="btn-primary" [disabled]="submitting() || !f.valid">
+        {{ submitting() ? 'Analisando…' : 'Executar auditoria' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,44 @@
+@for (page of job().pages; track page.page_number) {
+  <figure class="page-wrap">
+    <figcaption>
+      Página {{ page.page_number }} de {{ job().pages.length }}
+      @if (!page.has_text_layer) {
+        <span class="badge warn">sem camada de texto — tarje manualmente</span>
+      }
+    </figcaption>
+    <div
+      class="page"
+      [class.drawing]="drawMode() && !readonly()"
+      [style.aspect-ratio]="page.width + ' / ' + page.height"
+      (pointerdown)="onPointerDown($event, page)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp()"
+      (pointercancel)="draft.set(null)"
+    >
+      <img [src]="imageUrl(page.page_number)" [alt]="'Página ' + page.page_number" loading="lazy" draggable="false" />
+
+      @for (item of itemsByPage().get(page.page_number) ?? []; track item.redaction_id) {
+        @for (box of item.bboxes; track $index) {
+          <button
+            type="button"
+            class="overlay"
+            [attr.data-rid]="$first ? item.redaction_id : null"
+            [class.approved]="item.approved"
+            [class.selected]="item.redaction_id === selectedId()"
+            [style]="boxStyle(box, page)"
+            [style.--cat]="meta[item.category].color"
+            [title]="meta[item.category].label + (item.approved ? ' — será tarjado' : ' — mantido visível') + (readonly() ? '' : ' (clique para alternar)')"
+            [attr.aria-pressed]="item.approved"
+            (click)="onOverlayClick($event, item)"
+          ></button>
+        }
+      }
+
+      @if (draft(); as d) {
+        @if (d.page.page_number === page.page_number) {
+          <div class="draft" [style]="boxStyle(d.box, page)"></div>
+        }
+      }
+    </div>
+  </figure>
+}

@@ -1,0 +1,125 @@
+@if (loadError()) {
+  <div class="mx-auto max-w-xl rounded-lg border border-line bg-surface p-6 text-center">
+    <p class="text-sm text-danger">{{ loadError() }}</p>
+    <button class="btn mt-4" (click)="load()">Tentar novamente</button>
+  </div>
+} @else if (note(); as n) {
+  <!-- Barra superior -->
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-lg font-semibold">
+        {{ n.note_number ? 'Nota devolutiva nº ' + n.note_number : 'Minuta de nota devolutiva' }}
+      </h1>
+      <p class="text-sm text-muted">
+        Protocolo {{ formatProtocol(n.protocol_number) }} · {{ n.act_type }} · {{ n.presenter_name }}
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="mr-1 text-xs" aria-live="polite"
+            [class]="saveState() === 'error' || saveState() === 'conflict' ? 'text-danger' : 'text-muted'">
+        @switch (saveState()) {
+          @case ('saved') { {{ readOnly() ? 'Emitida — somente leitura' : 'Salvo' }} }
+          @case ('pending') { Alterações pendentes… }
+          @case ('saving') { Salvando… }
+          @case ('conflict') { Conflito de versão }
+          @case ('error') {
+            Falha ao salvar · <button class="underline" (click)="enqueueSave()">tentar de novo</button>
+          }
+        }
+      </span>
+      <button class="btn" (click)="copy(true)">Copiar texto formatado</button>
+      <button class="btn" (click)="copy(false)">Copiar sem formatação</button>
+      <button class="btn" (click)="download('md')">Baixar .md</button>
+      <button class="btn" (click)="download('txt')">Baixar .txt</button>
+      @if (!readOnly()) {
+        <button class="btn btn-primary" (click)="actionError.set(null); confirmingIssue.set(true)">Emitir nota</button>
+      }
+    </div>
+  </div>
+
+  @if (warnings().length) {
+    <div class="mb-4 rounded-lg border border-warn-line bg-warn-bg px-4 py-3 text-sm text-warn-ink" role="status">
+      <div class="flex items-start justify-between gap-4">
+        <ul class="list-disc space-y-1 pl-4">
+          @for (w of warnings(); track w) { <li>{{ w }}</li> }
+        </ul>
+        <button class="text-xs underline" (click)="dismissWarnings()">Fechar</button>
+      </div>
+    </div>
+  }
+
+  @if (actionError()) {
+    <div class="mb-4 flex items-start justify-between gap-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger" role="alert">
+      <span>{{ actionError() }}</span>
+      @if (saveState() === 'conflict') {
+        <button class="btn shrink-0" (click)="actionError.set(null); load()">Recarregar nota</button>
+      }
+    </div>
+  }
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+    <!-- Exigências -->
+    <section>
+      <div class="mb-2 flex items-center justify-between">
+        <h2 class="text-sm font-semibold">Exigências ({{ items().length }})</h2>
+        @if (!readOnly()) {
+          <button class="btn" (click)="addManual()">+ Exigência manual</button>
+        }
+      </div>
+
+      <div cdkDropList [cdkDropListData]="items()" [cdkDropListDisabled]="readOnly()" (cdkDropListDropped)="drop($event)"
+           class="space-y-3">
+        @for (it of items(); track it.key; let i = $index) {
+          <div cdkDrag [cdkDragDisabled]="readOnly()">
+            <div *cdkDragPlaceholder class="h-14 rounded-lg border-2 border-dashed border-accent/40 bg-accent/5"></div>
+            <app-requirement-card
+              [requirement]="it.r"
+              [position]="i + 1"
+              [readOnly]="readOnly()"
+              [startExpanded]="i === 0 || !it.r.grounded"
+              (changed)="update(it.key, $event)"
+              (remove)="removeItem(it.key)" />
+          </div>
+        } @empty {
+          <p class="rounded-lg border border-dashed border-line p-6 text-center text-sm text-muted">Nenhuma exigência.</p>
+        }
+      </div>
+    </section>
+
+    <!-- Prévia -->
+    <section class="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-auto">
+      <h2 class="mb-2 text-sm font-semibold">Pré-visualização</h2>
+      <app-note-preview [markdown]="preview()" [updating]="previewUpdating()" />
+    </section>
+  </div>
+
+  <!-- Confirmação de emissão -->
+  @if (confirmingIssue()) {
+    <div class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" role="dialog" aria-modal="true" aria-labelledby="issue-title">
+      <div class="w-full max-w-md rounded-lg bg-surface p-6 shadow-xl">
+        <h2 id="issue-title" class="text-base font-semibold">Emitir nota devolutiva?</h2>
+        <p class="mt-2 text-sm text-muted">
+          A nota receberá número oficial e <strong>não poderá mais ser editada</strong>.
+          Confira a pré-visualização antes de confirmar.
+        </p>
+        @if (incomplete().length) {
+          <p class="mt-3 rounded bg-warn-bg px-3 py-2 text-sm text-warn-ink">
+            Complete fundamentação e providência das exigências: {{ incomplete().join(', ') }}.
+          </p>
+        }
+        <div class="mt-5 flex justify-end gap-2">
+          <button class="btn" (click)="confirmingIssue.set(false)" [disabled]="issuing()">Cancelar</button>
+          <button class="btn btn-primary" (click)="issue()" [disabled]="issuing() || incomplete().length > 0 || items().length === 0">
+            {{ issuing() ? 'Emitindo…' : 'Emitir' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (toast()) {
+    <div class="fixed right-4 bottom-4 z-50 rounded-md bg-ink px-4 py-2 text-sm text-white shadow-lg" role="status">{{ toast() }}</div>
+  }
+} @else {
+  <p class="py-12 text-center text-sm text-muted">Carregando nota…</p>
+}

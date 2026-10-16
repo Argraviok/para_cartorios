@@ -1,0 +1,18 @@
+{
+  "name": "cartorio-triagem-atendimento-ai",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/free-ports.mjs",
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "cd backend && .venv/bin/uvicorn app.main:app --port 8020 --reload",
+    "dev:web": "cd frontend && npx ng serve",
+    "setup": "npm run setup:api && npm run setup:web",
+    "setup:api": "cd backend && python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt && (test -f .env || cp .env.example .env)",
+    "setup:web": "cd frontend && npx -y npm@10 install",
+    "seed": "cd backend && .venv/bin/python seed_requirements.py",
+    "test": "cd backend && .venv/bin/python -m pytest -q"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

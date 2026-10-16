@@ -1,0 +1,96 @@
+<header class="border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <button class="flex items-center gap-3 text-left" (click)="reset()">
+      <span class="flex size-9 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">RI</span>
+      <span>
+        <span class="block text-sm font-semibold text-slate-900">Confrontação Matrícula × Memorial</span>
+        <span class="block text-xs text-slate-500">Auditoria dominial e topográfica</span>
+      </span>
+    </button>
+    @if (analysis()) {
+      <button
+        class="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
+        (click)="reset()"
+      >
+        + Nova análise
+      </button>
+    }
+  </div>
+</header>
+
+<main class="mx-auto max-w-[1500px] px-4 py-6 sm:px-6">
+  @if (error()) {
+    <div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">{{ error() }}</div>
+  }
+
+  @if (analysis(); as a) {
+    <div class="mb-5 flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-semibold text-slate-900">Matrícula nº {{ a.registry_number }}</h1>
+        <p class="text-sm text-slate-500">
+          {{ a.registry_office ?? 'Cartório não identificado' }} · {{ a.document_filename }}
+          @if (a.memorial_filename) {
+            + {{ a.memorial_filename }}
+          }
+        </p>
+      </div>
+      <p class="text-xs text-slate-400">
+        Analisado em {{ a.created_at | date: 'dd/MM/yyyy HH:mm' }} · extração: {{ a.extraction_engine }}
+      </p>
+    </div>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <!-- Lado esquerdo: geometria -->
+      <div class="space-y-4">
+        <app-parcel-map
+          [geometry]="a.geometry"
+          [location]="a.approximate_location"
+          [busy]="anchoring()"
+          (anchor)="anchorParcel(a.id, $event)"
+        />
+        @if (a.geometry; as g) {
+          <app-geometry-metrics [geometry]="g" />
+        }
+      </div>
+
+      <!-- Lado direito: auditoria registral -->
+      <app-continuity-timeline [continuity]="a.subjective_continuity" [alerts]="a.alerts" />
+    </div>
+  } @else {
+    <div class="mx-auto max-w-4xl space-y-6">
+      <app-parcel-upload (analyzed)="show($event)" />
+
+      @if (recent().length) {
+        <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Análises recentes</h3>
+          <ul class="mt-3 divide-y divide-slate-100">
+            @for (r of recent(); track r.id) {
+              <li>
+                <button class="flex w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-slate-50" (click)="open(r.id)">
+                  <span>
+                    <span class="font-medium text-slate-900">Matrícula {{ r.registry_number }}</span>
+                    <span class="ml-2 text-xs text-slate-500">{{ r.document_filename }}</span>
+                  </span>
+                  <span class="flex items-center gap-3">
+                    <span
+                      class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      [class.bg-red-100]="r.subjective_continuity.status === 'QUEBRA_DETECTADA'"
+                      [class.text-red-800]="r.subjective_continuity.status === 'QUEBRA_DETECTADA'"
+                      [class.bg-amber-100]="r.subjective_continuity.status === 'ALERTA'"
+                      [class.text-amber-800]="r.subjective_continuity.status === 'ALERTA'"
+                      [class.bg-emerald-100]="r.subjective_continuity.status === 'REGULAR'"
+                      [class.text-emerald-800]="r.subjective_continuity.status === 'REGULAR'"
+                    >
+                      {{ r.subjective_continuity.status.replace('_', ' ') }}
+                    </span>
+                    <span class="text-xs text-slate-400">{{ r.created_at | date: 'dd/MM HH:mm' }}</span>
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  }
+</main>

@@ -1,0 +1,15 @@
+{
+  "name": "cartorio-lgpd-redaction",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && (test -f .env || cp .env.example .env) && .venv/bin/python test_samples/generate_samples.py && cd ../frontend && npm install",
+    "dev": "npm run dev:db && concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:db": "docker compose -p setima_lgpd up -d",
+    "dev:api": "cd backend && .venv/bin/uvicorn app.main:app --reload --reload-dir app --port 8000",
+    "dev:web": "cd frontend && npx ng serve --port 4200",
+    "test": "cd backend && .venv/bin/python -m pytest -q"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

@@ -1,0 +1,42 @@
+**{{ serventia.nome | upper }}**
+CNS {{ serventia.cns }} · {{ serventia.endereco }} · {{ serventia.cidade_uf }}
+
+---
+
+{% if note_number %}
+# NOTA DEVOLUTIVA Nº {{ note_number }}
+{% else %}
+# NOTA DEVOLUTIVA — MINUTA
+
+> **MINUTA — SEM VALOR OFICIAL**
+{% endif %}
+
+**Protocolo nº:** {{ protocol_number }} · **Data da prenotação:** {{ protocol_date }}
+**Título:** {{ act_type }}
+**Apresentante:** {{ presenter_name }}
+
+Em cumprimento ao disposto no art. 198 da Lei nº 6.015/1973, procedida a qualificação registral do título acima identificado, comunica-se que seu ingresso no fólio real depende do atendimento {% if requirements | length == 1 %}da exigência formulada{% else %}das exigências formuladas, de uma só vez,{% endif %} a seguir:
+
+{% for r in requirements %}
+## {{ r.order }}. {{ r.legal_topic }}
+
+{% if r.legal_basis %}**Fundamentação:** {{ r.legal_basis }}
+{% else %}**Fundamentação:** _[a completar pelo escrevente]_
+{% endif %}
+
+{{ r.final_text }}
+
+**Providência:** {{ r.suggested_solution or "_[a completar pelo escrevente]_" }}
+
+{% endfor %}
+---
+
+O título deverá ser reapresentado com o cumprimento integral {% if requirements | length == 1 %}da exigência{% else %}das exigências{% endif %} no prazo de vigência da prenotação ({{ prenotacao_dias }} dias), nos termos do art. 205 da Lei nº 6.015/1973, sob pena de cessação automática de seus efeitos. Não se conformando com {% if requirements | length == 1 %}a exigência{% else %}as exigências{% endif %}, poderá o interessado requerer a suscitação de dúvida, nos termos do art. 198 da mesma lei.
+
+{{ serventia.cidade_uf.split("/")[0] }}, {{ issue_date }}.
+
+&nbsp;
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+**{{ serventia.oficial }}**
+Oficial / Substituto

@@ -1,0 +1,9 @@
+fastapi>=0.115
+google-genai>=1.0
+motor>=3.7
+openai>=1.92
+pydantic>=2.7
+pydantic-settings>=2.4
+pymupdf>=1.24.3
+python-multipart>=0.0.9
+uvicorn[standard]>=0.30

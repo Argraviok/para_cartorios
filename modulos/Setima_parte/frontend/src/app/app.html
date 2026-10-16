@@ -1,0 +1,104 @@
+<header class="topbar">
+  <h1>Redaction Studio <span>· Anonimização LGPD</span></h1>
+  <label class="operator">
+    <span>Operador</span>
+    <input
+      type="text"
+      placeholder="Nome do escrevente"
+      [ngModel]="operator()"
+      (ngModelChange)="setOperator($event)"
+      maxlength="120"
+    />
+  </label>
+</header>
+
+<main class="layout">
+  <aside class="left">
+    <app-upload-dropzone [operator]="operator() || 'não informado'" (jobCreated)="onJobCreated($event)" />
+
+    <section class="panel">
+      <h2>Documentos <button type="button" class="link" (click)="refreshJobs()">atualizar</button></h2>
+      @if (!jobs().length) {
+        <p class="muted">Nenhum documento enviado.</p>
+      }
+      <ul class="jobs">
+        @for (j of jobs(); track j.job_id) {
+          <li>
+            <button type="button" [class.active]="j.job_id === job()?.job_id" (click)="open(j)">
+              <span class="name">{{ j.filename }}</span>
+              <span class="meta">
+                <span class="badge" [class.ok]="j.status === 'sanitized'">{{ statusLabel[j.status] }}</span>
+                {{ j.total_detected }} achado(s) · {{ j.created_at | date: 'dd/MM HH:mm' }}
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  </aside>
+
+  @if (job(); as j) {
+    <section class="studio">
+      <div class="toolbar">
+        <strong class="filename" [title]="j.filename">{{ j.filename }}</strong>
+        @if (!readonly()) {
+          <button type="button" class="secondary" [class.on]="drawMode()" [attr.aria-pressed]="drawMode()" (click)="drawMode.set(!drawMode())">
+            {{ drawMode() ? 'Desenhando tarja… (clique para sair)' : 'Tarja manual' }}
+          </button>
+          <span class="hint">Clique numa marcação para alternar entre tarjar / manter visível.</span>
+        } @else {
+          <span class="hint">Documento homologado — somente leitura.</span>
+        }
+      </div>
+
+      @for (w of j.warnings; track $index) {
+        <p class="alert warn">{{ w }}</p>
+      }
+      @if (error()) {
+        <p class="alert error" role="alert">{{ error() }} <button type="button" class="link" (click)="error.set(null)">fechar</button></p>
+      }
+      @if (notice()) {
+        <p class="alert ok">{{ notice() }}</p>
+      }
+
+      <app-redaction-viewer
+        [job]="j"
+        [items]="items()"
+        [selectedId]="selectedId()"
+        [drawMode]="drawMode()"
+        [readonly]="readonly()"
+        (toggle)="toggle($event)"
+        (select)="selectedId.set($event)"
+        (drawn)="addManual($event)"
+      />
+    </section>
+
+    <aside class="right">
+      <app-audit-summary
+        [job]="j"
+        [items]="items()"
+        [dirty]="dirty()"
+        [busy]="busy()"
+        (save)="save()"
+        (finalize)="finalize()"
+      />
+      <section class="panel">
+        <h2>Achados</h2>
+        <app-redaction-sidebar
+          [items]="items()"
+          [selectedId]="selectedId()"
+          [readonly]="readonly()"
+          (toggle)="toggle($event)"
+          (select)="selectedId.set($event)"
+          (setCategoryApproval)="setCategoryApproval($event)"
+          (changeCategory)="changeCategory($event)"
+          (remove)="remove($event)"
+        />
+      </section>
+    </aside>
+  } @else {
+    <section class="studio empty">
+      <p>Envie um PDF ou selecione um documento para revisar as tarjas sugeridas.</p>
+    </section>
+  }
+</main>

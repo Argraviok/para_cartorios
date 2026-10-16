@@ -1,0 +1,109 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Cockpit de Auditoria</h1>
+      <p class="text-sm text-slate-500">Títulos protocolados submetidos à verificação antifraude</p>
+    </div>
+    <a routerLink="/audits/new" class="btn-primary">+ Nova auditoria</a>
+  </div>
+
+  @if (stats(); as s) {
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div class="card p-4">
+        <div class="text-xs font-semibold uppercase text-slate-500">Pendentes de despacho</div>
+        <div class="mt-1 text-3xl font-bold">{{ s.pending }}</div>
+      </div>
+      @for (lvl of levels; track lvl) {
+        <button type="button" (click)="filterLevel(lvl)"
+                class="card p-4 text-left transition hover:border-slate-400"
+                [class.ring-2]="riskFilter === lvl" [class.ring-slate-900]="riskFilter === lvl">
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+            <span class="h-2.5 w-2.5 rounded-full {{ risk[lvl].dot }}"></span> Risco {{ risk[lvl].label }}
+          </div>
+          <div class="mt-1 text-3xl font-bold">{{ s.by_risk_level[lvl] }}</div>
+        </button>
+      }
+    </div>
+  }
+
+  <div class="card">
+    <form class="flex flex-wrap items-end gap-3 border-b border-slate-200 p-4" (ngSubmit)="load()">
+      <div>
+        <label class="label" for="proto">Protocolo</label>
+        <input id="proto" class="input w-40" name="protocol" [(ngModel)]="protocol" placeholder="219.040" />
+      </div>
+      <div>
+        <label class="label" for="risk">Risco</label>
+        <select id="risk" class="input w-36" name="risk" [(ngModel)]="riskFilter" (ngModelChange)="load()">
+          <option value="">Todos</option>
+          @for (lvl of levels; track lvl) { <option [value]="lvl">{{ risk[lvl].label }}</option> }
+        </select>
+      </div>
+      <div>
+        <label class="label" for="dec">Despacho</label>
+        <select id="dec" class="input w-40" name="decision" [(ngModel)]="decisionFilter" (ngModelChange)="load()">
+          <option value="">Todos</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="HOMOLOGADO">Homologado</option>
+          <option value="RECUSADO">Recusado</option>
+        </select>
+      </div>
+      <button class="btn-ghost" type="submit">Filtrar</button>
+    </form>
+
+    @if (error()) {
+      <div class="m-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ error() }}</div>
+    }
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Semáforo</th>
+            <th class="px-4 py-3">Protocolo</th>
+            <th class="px-4 py-3">Ato</th>
+            <th class="px-4 py-3">Apresentante</th>
+            <th class="px-4 py-3 text-right">Score</th>
+            <th class="px-4 py-3">Sinais</th>
+            <th class="px-4 py-3">Despacho</th>
+            <th class="px-4 py-3">Data</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (a of audits(); track a.id) {
+            <tr class="cursor-pointer hover:bg-slate-50" [routerLink]="['/audits', a.id]">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-bold ring-1 {{ risk[a.risk_level].badge }}">
+                  <span class="h-2.5 w-2.5 rounded-full {{ risk[a.risk_level].dot }}"></span>{{ risk[a.risk_level].label }}
+                </span>
+              </td>
+              <td class="px-4 py-3 font-mono font-semibold">{{ a.protocol_number }}</td>
+              <td class="px-4 py-3">{{ a.service_type }} <span class="text-xs text-slate-400">· {{ a.document_type }}</span></td>
+              <td class="px-4 py-3">{{ a.presenter_name || '—' }}</td>
+              <td class="px-4 py-3 text-right font-bold">{{ a.risk_score }}</td>
+              <td class="px-4 py-3 text-xs">
+                @if (a.tampering_detected) { <span class="mr-1 rounded bg-red-100 px-1.5 py-0.5 text-red-800">adulteração</span> }
+                @if (a.signature_match_score !== null && a.signature_match_score < 45) {
+                  <span class="mr-1 rounded bg-red-100 px-1.5 py-0.5 text-red-800">assinatura</span>
+                }
+                @if (a.in_person_requested) { <span class="rounded bg-sky-100 px-1.5 py-0.5 text-sky-800">presencial</span> }
+              </td>
+              <td class="px-4 py-3">
+                <span class="rounded px-2 py-0.5 text-xs font-semibold {{ decisionMeta[a.officer_decision].cls }}">
+                  {{ decisionMeta[a.officer_decision].label }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-slate-500">{{ a.created_at | date: 'dd/MM/yy HH:mm' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="px-4 py-10 text-center text-slate-500">
+                {{ loading() ? 'Carregando…' : 'Nenhuma auditoria encontrada para os filtros.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

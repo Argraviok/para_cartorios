@@ -1,0 +1,47 @@
+@if (!groups().length) {
+  <p class="empty">Nenhum dado sensível sugerido. Use “Tarja manual” para marcar trechos.</p>
+}
+
+@for (g of groups(); track g.category) {
+  <section class="group" [style.--cat]="meta[g.category].color">
+    <header>
+      <span class="dot"></span>
+      <h3>{{ meta[g.category].label }}</h3>
+      <span class="count">{{ g.approved }}/{{ g.items.length }}</span>
+      @if (!readonly()) {
+        <button type="button" class="link" (click)="setCategoryApproval.emit({ category: g.category, approved: true })">tarjar todos</button>
+        <button type="button" class="link" (click)="setCategoryApproval.emit({ category: g.category, approved: false })">manter todos</button>
+      }
+    </header>
+
+    <ul>
+      @for (item of g.items; track item.redaction_id) {
+        <li [class.selected]="item.redaction_id === selectedId()" [class.rejected]="!item.approved">
+          <input
+            type="checkbox"
+            [checked]="item.approved"
+            [disabled]="readonly()"
+            [attr.aria-label]="'Tarjar ' + item.detected_text"
+            (change)="toggle.emit(item.redaction_id)"
+          />
+          <button type="button" class="body" (click)="select.emit(item.redaction_id)">
+            <span class="text">{{ item.detected_text || '(área sem texto — imagem)' }}</span>
+            <span class="meta">
+              p. {{ item.page_number }} · {{ item.pii_type }} · {{ sourceLabel[item.source] }}
+            </span>
+          </button>
+          @if (item.source === 'manual' && !readonly()) {
+            <div class="manual-actions">
+              <select [value]="item.category" (change)="onCategoryChange(item.redaction_id, $event)" aria-label="Categoria">
+                @for (c of categories; track c) {
+                  <option [value]="c">{{ meta[c].label }}</option>
+                }
+              </select>
+              <button type="button" class="link danger" (click)="remove.emit(item.redaction_id)">remover</button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+}

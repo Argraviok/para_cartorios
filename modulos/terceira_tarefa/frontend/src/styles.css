@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'EB Garamond', Georgia, serif;
+
+  --color-parchment-50: #fbf8f1;
+  --color-parchment-100: #f4eddc;
+  --color-parchment-200: #e8dbbb;
+  --color-parchment-300: #d6c191;
+  --color-ink-900: #1f1a14;
+  --color-ink-700: #3d3428;
+  --color-ink-500: #6b5d4a;
+  --color-ink-300: #a8998a;
+  --color-sepia-600: #8a4b20;
+  --color-sepia-700: #6f3a17;
+  --color-verified: #2f6b3f;
+  --color-warn: #a76a00;
+  --color-danger: #a33224;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  @apply bg-parchment-50 text-ink-900 font-sans antialiased;
+}
+
+mark {
+  @apply bg-parchment-300/70 text-ink-900 rounded-sm px-0.5;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition
+      disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-sepia-600;
+  }
+  .btn-primary {
+    @apply bg-sepia-600 text-white hover:bg-sepia-700;
+  }
+  .btn-verify {
+    @apply bg-verified text-white hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply border border-parchment-300 bg-white text-ink-700 hover:bg-parchment-100;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-parchment-300 bg-white px-3 py-2 text-sm text-ink-900
+      placeholder:text-ink-300 focus:border-sepia-600 focus:outline-none focus:ring-2 focus:ring-sepia-600/20;
+  }
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500;
+  }
+}

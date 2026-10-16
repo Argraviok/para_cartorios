@@ -1,0 +1,8 @@
+node_modules/
+backend/.venv/
+backend/.env
+backend/storage/
+__pycache__/
+.pytest_cache/
+frontend/dist/
+frontend/.angular/

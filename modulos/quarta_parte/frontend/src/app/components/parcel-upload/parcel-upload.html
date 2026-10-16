@@ -1,0 +1,82 @@
+<form class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200" (ngSubmit)="submit()">
+  <h2 class="text-lg font-semibold text-slate-900">Nova auditoria</h2>
+  <p class="mt-1 text-sm text-slate-500">
+    Envie a matrícula e, opcionalmente, o memorial descritivo e o título para verificar continuidade dominial,
+    ônus vigentes e fechamento do perímetro.
+  </p>
+
+  <div class="mt-5 grid gap-4 md:grid-cols-3">
+    @for (slot of slots; track slot.key) {
+      @let file = files()[slot.key];
+      <label
+        class="relative flex min-h-36 cursor-pointer flex-col justify-between rounded-lg border-2 border-dashed p-4 transition"
+        [class.border-indigo-400]="dragOver() === slot.key"
+        [class.bg-indigo-50]="dragOver() === slot.key"
+        [class.border-emerald-300]="file && dragOver() !== slot.key"
+        [class.bg-emerald-50]="file && dragOver() !== slot.key"
+        [class.border-slate-300]="!file && dragOver() !== slot.key"
+        (dragover)="$event.preventDefault(); dragOver.set(slot.key)"
+        (dragleave)="dragOver.set(null)"
+        (drop)="drop(slot.key, $event)"
+      >
+        <input type="file" [accept]="accept" class="sr-only" (change)="pick(slot.key, $event)" />
+        <div>
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            {{ slot.label }}
+            @if (slot.required) {
+              <span class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium uppercase text-white">obrigatório</span>
+            }
+          </div>
+          <p class="mt-1 text-xs text-slate-500">{{ slot.hint }}</p>
+        </div>
+        @if (file) {
+          <div class="mt-3 flex items-center justify-between gap-2 rounded-md bg-white px-2 py-1.5 text-xs ring-1 ring-emerald-200">
+            <span class="truncate font-medium text-emerald-800" [title]="file.name">{{ file.name }}</span>
+            <span class="shrink-0 text-slate-400">{{ size(file) }}</span>
+            <button
+              type="button"
+              class="shrink-0 rounded px-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              (click)="$event.preventDefault(); clear(slot.key)"
+              aria-label="Remover arquivo"
+            >
+              ✕
+            </button>
+          </div>
+        } @else {
+          <p class="mt-3 text-xs font-medium text-indigo-600">Clique ou arraste o arquivo (PDF, DOCX ou DOC)</p>
+        }
+      </label>
+    }
+  </div>
+
+  <div class="mt-4">
+    <label class="text-sm font-medium text-slate-700" for="seller">Vendedor no título (opcional)</label>
+    <input
+      id="seller"
+      name="seller"
+      [(ngModel)]="sellerName"
+      placeholder="Ex.: MARCOS VINICIUS PEREIRA — separe vários com ';'"
+      class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+    />
+    <p class="mt-1 text-xs text-slate-500">Se preenchido, prevalece sobre o vendedor extraído do título.</p>
+  </div>
+
+  @if (error()) {
+    <div class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">{{ error() }}</div>
+  }
+
+  <div class="mt-5 flex justify-end">
+    <button
+      type="submit"
+      [disabled]="loading() || !files().matricula"
+      class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      @if (loading()) {
+        <span class="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+        Analisando documentos…
+      } @else {
+        Analisar
+      }
+    </button>
+  </div>
+</form>

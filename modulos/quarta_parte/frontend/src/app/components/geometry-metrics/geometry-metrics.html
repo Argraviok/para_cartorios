@@ -1,0 +1,97 @@
+@let g = geometry();
+
+<section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Geometria do imóvel</h3>
+
+  <dl class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="rounded-lg bg-slate-50 p-3">
+      <dt class="text-xs text-slate-500">Erro de fechamento</dt>
+      <dd class="mt-1 text-lg font-semibold" [class.text-red-600]="!g.is_closed" [class.text-emerald-700]="g.is_closed">
+        @if (g.closure_method === 'COORDINATES') {
+          —
+        } @else {
+          {{ g.gap_meters | number: '1.3-3' }} m
+        }
+      </dd>
+      <dd class="text-[11px] text-slate-500">
+        @if (precision(); as p) {
+          precisão 1:{{ p | number: '1.0-0' }}
+        } @else {
+          {{ g.closure_method === 'COORDINATES' ? 'por coordenadas' : 'fechamento exato' }}
+        }
+      </dd>
+    </div>
+    <div class="rounded-lg bg-slate-50 p-3">
+      <dt class="text-xs text-slate-500">Área calculada</dt>
+      <dd class="mt-1 text-lg font-semibold text-slate-900">{{ g.calculated_area | number: '1.2-2' }} m²</dd>
+      <dd class="text-[11px] text-slate-500">Shapely (projeção UTM)</dd>
+    </div>
+    <div class="rounded-lg bg-slate-50 p-3">
+      <dt class="text-xs text-slate-500">Área declarada</dt>
+      <dd class="mt-1 text-lg font-semibold text-slate-900">
+        {{ g.declared_area != null ? (g.declared_area | number: '1.2-2') + ' m²' : '—' }}
+      </dd>
+      <dd class="text-[11px] text-slate-500">matrícula / memorial</dd>
+    </div>
+    <div class="rounded-lg p-3" [class.bg-red-50]="areaDiverges()" [class.bg-slate-50]="!areaDiverges()">
+      <dt class="text-xs text-slate-500">Divergência de área</dt>
+      <dd class="mt-1 text-lg font-semibold" [class.text-red-600]="areaDiverges()" [class.text-emerald-700]="!areaDiverges()">
+        {{ g.area_difference_percent != null ? (g.area_difference_percent | number: '1.2-2') + '%' : '—' }}
+      </dd>
+      <dd class="text-[11px] text-slate-500">limite {{ tolerance }}%</dd>
+    </div>
+  </dl>
+
+  <div class="mt-2 text-xs text-slate-500">
+    Perímetro calculado: {{ g.perimeter_m | number: '1.2-2' }} m ·
+    {{ g.is_valid_polygon ? 'polígono válido' : 'polígono com auto-interseção' }} ·
+    @switch (g.georeference_method) {
+      @case ('COORDINATES') { georreferenciado por coordenadas }
+      @case ('MANUAL_ANCHOR') { posição manual (sem valor de georreferenciamento) }
+      @default { sem georreferenciamento }
+    }
+    · extraído {{ g.source === 'MATRICULA' ? 'da matrícula' : 'do memorial' }}
+  </div>
+
+  @if (g.confrontants.length) {
+    <h4 class="mt-5 text-sm font-semibold text-slate-800">Confrontantes (validação tabular)</h4>
+    <div class="mt-2 overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="text-xs uppercase text-slate-500">
+          <tr class="border-b border-slate-200">
+            <th class="py-2 pr-3 font-medium">Lado</th>
+            <th class="py-2 pr-3 font-medium">Divisa</th>
+            <th class="py-2 pr-3 font-medium">Confrontante</th>
+            <th class="py-2 font-medium">Matrícula</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of g.confrontants; track c.segment) {
+            <tr class="border-b border-slate-100 last:border-0">
+              <td class="py-2 pr-3 text-slate-500">{{ c.direction ?? '—' }}</td>
+              <td class="whitespace-nowrap py-2 pr-3 font-mono text-xs">{{ c.segment }}</td>
+              <td class="py-2 pr-3">{{ c.name }}</td>
+              <td class="py-2">
+                @if (c.registry) {
+                  <span class="rounded bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
+                    {{ c.registry }}
+                  </span>
+                } @else {
+                  <span class="text-slate-400">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (g.warnings.length) {
+    <ul class="mt-4 space-y-1.5">
+      @for (w of g.warnings; track $index) {
+        <li class="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-amber-200">{{ w }}</li>
+      }
+    </ul>
+  }
+</section>

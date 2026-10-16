@@ -1,0 +1,52 @@
+<section class="panel">
+  <h2>Homologação</h2>
+
+  <dl>
+    <dt>Status</dt>
+    <dd><span class="badge" [class.ok]="sanitized()">{{ statusLabel[job().status] }}</span></dd>
+    <dt>Tarjas aprovadas</dt>
+    <dd>{{ approved() }} de {{ items().length }} @if (manual()) { ({{ manual() }} manual) }</dd>
+    @if (job().sanitized_at) {
+      <dt>Sanitizado</dt>
+      <dd>{{ job().sanitized_at | date: 'dd/MM/yyyy HH:mm' }} por {{ job().sanitized_by }}</dd>
+    }
+    @if (job().source_format !== 'pdf') {
+      <dt>Formato enviado</dt>
+      <dd>Word (.{{ job().source_format }}) — convertido para PDF; o arquivo tarjado é entregue em PDF</dd>
+    }
+    <dt>Motor de detecção</dt>
+    <dd>regras{{ job().llm_provider !== 'none' ? ' + LLM (' + job().llm_provider + ')' : '' }}</dd>
+  </dl>
+
+  @if (!sanitized()) {
+    <div class="actions">
+      <button type="button" class="secondary" [disabled]="!dirty() || busy()" (click)="save.emit()">Salvar revisão</button>
+      <button type="button" class="primary" [disabled]="busy()" (click)="openConfirm()">Aplicar tarjamento definitivo</button>
+    </div>
+  } @else {
+    <div class="actions">
+      <a class="button primary" [href]="sanitizedUrl()" download>Baixar PDF sanitizado</a>
+    </div>
+  }
+
+  <div class="reports">
+    <span>Relatório de auditoria LGPD:</span>
+    <a [href]="auditUrl('pdf')" download>PDF</a>
+    <a [href]="auditUrl('csv')" download>CSV</a>
+  </div>
+</section>
+
+<dialog #confirmDialog class="confirm">
+  <h2>Aplicar tarjamento definitivo?</h2>
+  <p>
+    Serão aplicadas <strong>{{ approved() }}</strong> tarja(s). No PDF gerado, o texto, as imagens e os vetores sob as tarjas
+    serão <strong>destruídos de forma irreversível</strong> — não poderão ser recuperados nem copiados.
+  </p>
+  <p class="muted">
+    O arquivo original permanece preservado na serventia. Após a homologação, esta revisão não poderá mais ser alterada.
+  </p>
+  <div class="actions">
+    <button type="button" class="secondary" (click)="confirmDialog.close()">Cancelar</button>
+    <button type="button" class="danger" (click)="confirm()">Homologar e baixar PDF tarjado</button>
+  </div>
+</dialog>

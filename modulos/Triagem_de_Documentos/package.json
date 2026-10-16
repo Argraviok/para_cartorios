@@ -1,0 +1,15 @@
+{
+  "name": "triagem-de-documentos",
+  "private": true,
+  "scripts": {
+    "predev": "npm run seed",
+    "dev": "concurrently -k -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd backend && .venv/bin/uvicorn app.main:app --reload --port 8030",
+    "dev:web": "npm --prefix frontend start",
+    "seed": "cd backend && .venv/bin/python seed_rules.py",
+    "db": "docker start triagem-mongo 2>/dev/null || docker run -d --name triagem-mongo -p 27017:27017 -v triagem-mongo-data:/data/db mongo:7"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

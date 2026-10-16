@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --color-ink: #1c2330;
+  --color-muted: #5b6475;
+  --color-line: #dde1e8;
+  --color-subtle: #f1f3f6;
+  --color-surface: #ffffff;
+  --color-canvas: #f6f7f9;
+  --color-accent: #1f4e79;
+  --color-accent-strong: #163a5b;
+  --color-warn-bg: #fff6e0;
+  --color-warn-line: #f0d48a;
+  --color-warn-ink: #7a5300;
+  --color-danger: #a4262c;
+  --color-ok: #1e7a46;
+}
+
+body {
+  @apply bg-canvas font-sans text-ink antialiased;
+}
+
+.field {
+  @apply block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink
+         outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20
+         disabled:bg-subtle disabled:text-muted;
+}
+.label {
+  @apply mb-1 block text-xs font-medium tracking-wide text-muted uppercase;
+}
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-line bg-surface px-3 py-2
+         text-sm font-medium text-ink transition hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-50;
+}
+.btn-primary {
+  @apply border-accent bg-accent text-white hover:bg-accent-strong;
+}
+.btn-danger {
+  @apply text-danger hover:bg-red-50;
+}
+
+/* Documento renderizado (prévia da nota) */
+.nota-doc {
+  @apply font-serif text-[15px] leading-relaxed text-ink;
+}
+.nota-doc h1 { @apply my-4 text-center text-lg font-semibold tracking-wide; }
+.nota-doc h2 { @apply mt-5 mb-1 text-base font-semibold; }
+.nota-doc p { @apply my-2 text-justify; }
+.nota-doc hr { @apply my-4 border-line; }
+.nota-doc blockquote { @apply my-3 rounded border border-warn-line bg-warn-bg px-3 py-1 text-center text-sm text-warn-ink; }
+.nota-doc strong { @apply font-semibold; }
+.nota-doc > p:first-child { @apply text-center; }

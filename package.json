@@ -1,0 +1,11 @@
+{
+  "name": "painel-mvps",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node subir_todos.mjs",
+    "todos": "node subir_todos.mjs",
+    "painel": "python3 gerar_painel.py",
+    "testes": "python3 gerar_painel.py --testes"
+  }
+}

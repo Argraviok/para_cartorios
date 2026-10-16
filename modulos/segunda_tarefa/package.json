@@ -1,0 +1,15 @@
+{
+  "name": "notas-devolutivas",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/check-ports.mjs",
+    "dev": "concurrently -k -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "cd backend && .venv/bin/uvicorn app.main:app --reload --port 8040",
+    "dev:web": "npm --prefix frontend start",
+    "setup": "cd backend && uv venv .venv --python 3.12 --allow-existing && uv pip install --python .venv/bin/python -r requirements.txt && cd ../frontend && npm install",
+    "test": "cd backend && .venv/bin/python -m pytest"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

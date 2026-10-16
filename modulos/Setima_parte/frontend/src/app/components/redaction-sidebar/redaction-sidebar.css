@@ -1,0 +1,106 @@
+:host {
+  display: block;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.group {
+  margin-bottom: 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+header h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cat);
+}
+
+.count {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  padding: 6px 8px;
+  border-left: 3px solid var(--cat);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: var(--surface-2);
+}
+
+li.selected {
+  outline: 2px solid var(--cat);
+}
+
+li.rejected {
+  border-left-style: dashed;
+  opacity: 0.7;
+}
+
+li input {
+  margin-top: 3px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.text {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+li.rejected .text {
+  text-decoration: line-through;
+}
+
+.meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.manual-actions {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.manual-actions select {
+  font-size: 12px;
+}

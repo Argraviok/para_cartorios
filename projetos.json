@@ -1,0 +1,150 @@
+[
+  {
+    "slug": "exame",
+    "nome": "Exame Qualificativo",
+    "dir": "Triagem_de_Documentos",
+    "title": "Exame Qualificativo de Escrituras",
+    "desc": "Lê o PDF de uma escritura e confere, com IA, regras de qualificação registral por tipo de ato (partes, outorga, especialidade do imóvel, certidões), com base legal de cada regra.",
+    "area": "Registro de Imóveis",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 20",
+      "MongoDB",
+      "PyMuPDF"
+    ],
+    "api": 8030,
+    "web": 4230,
+    "web_path": "/"
+  },
+  {
+    "slug": "notas",
+    "nome": "Notas Devolutivas",
+    "dir": "segunda_tarefa",
+    "title": "Gerador de Notas Devolutivas",
+    "desc": "Gera notas devolutivas fundamentadas a partir de fichas de precedentes, com busca vetorial + textual, numeração sem duplicidade, trava de emissão e controle de versão. Tem modo offline sem IA.",
+    "area": "Registro de Imóveis",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 20",
+      "MongoDB Vector Search",
+      "Atlas Search"
+    ],
+    "api": 8040,
+    "web": 4240,
+    "web_path": "/"
+  },
+  {
+    "slug": "transcricao",
+    "nome": "Transcrição Histórica",
+    "dir": "terceira_tarefa",
+    "title": "Arquivo Digital — Transcrição Histórica",
+    "desc": "Transcreve com IA páginas manuscritas e datilografadas de livros antigos (Livro 3, nascimento, casamento, óbito), com pré-processamento de imagem, busca fuzzy/fonética e revisão humana lado a lado.",
+    "area": "Registro Civil / Imóveis",
+    "ai": [
+      "Claude"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 21",
+      "MongoDB Atlas Search",
+      "OpenCV"
+    ],
+    "api": 8050,
+    "web": 4250,
+    "web_path": "/"
+  },
+  {
+    "slug": "matricula",
+    "nome": "Matrícula × Memorial",
+    "dir": "quarta_parte",
+    "title": "Confrontação de Matrícula e Memorial",
+    "desc": "Audita matrícula, memorial descritivo e título (PDF/DOCX/DOC): continuidade dominial, ônus vigentes, reconstrução do perímetro, fechamento, área e plotagem do imóvel no mapa.",
+    "area": "Registro de Imóveis",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 21",
+      "MongoDB",
+      "Shapely",
+      "pyproj"
+    ],
+    "api": 8010,
+    "web": 4210,
+    "web_path": "/"
+  },
+  {
+    "slug": "atendimento",
+    "nome": "Atendimento",
+    "dir": "Quinta_parte",
+    "title": "Triagem, Atendimento e Emolumentos",
+    "desc": "Atendimento conversacional (webchat/WhatsApp) que identifica o serviço, estima emolumentos e confere fotos de documentos. O escrevente acompanha num inbox em tempo real e pode assumir a conversa.",
+    "area": "Tabelionato de Notas",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 21",
+      "MongoDB",
+      "Pillow"
+    ],
+    "api": 8020,
+    "web": 4220,
+    "web_path": "/painel"
+  },
+  {
+    "slug": "fraude",
+    "nome": "Antifraude",
+    "dir": "Sexta_parte",
+    "title": "Prevenção à Fraude e Due Diligence",
+    "desc": "Análise forense de documentos (ELA, metadados), cotejo de assinatura com cartão de firma e regras de procuração/CENSEC, gerando score de risco e decisão auditável. Arquivos criptografados (LGPD).",
+    "area": "Tabelionato de Notas",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 20",
+      "Tailwind",
+      "MongoDB",
+      "OpenCV"
+    ],
+    "api": 8060,
+    "web": 4260,
+    "web_path": "/"
+  },
+  {
+    "slug": "lgpd",
+    "nome": "Tarjamento LGPD",
+    "dir": "Setima_parte",
+    "title": "Anonimização e Tarjamento LGPD",
+    "desc": "Detecta dados sensíveis de terceiros em certidões e autos (regex + LLM), o escrevente revisa no Redaction Studio e o sistema aplica tarja destrutiva no PDF, com verificação e log de auditoria.",
+    "area": "LGPD / Certidões",
+    "ai": [
+      "Gemini",
+      "OpenAI"
+    ],
+    "stack": [
+      "FastAPI",
+      "Angular 21",
+      "MongoDB",
+      "PyMuPDF"
+    ],
+    "api": 8000,
+    "web": 4200,
+    "web_path": "/"
+  }
+]

@@ -1,0 +1,42 @@
+<section class="panel">
+  <h2>Enviar certidões / autos</h2>
+
+  <label class="field">
+    <span>Tipo de serventia</span>
+    <select [(ngModel)]="serviceType" [disabled]="busy()">
+      @for (s of serviceTypes; track s.value) {
+        <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label
+    class="dropzone"
+    [class.dragging]="dragging()"
+    [class.disabled]="busy()"
+    (dragover)="$event.preventDefault(); dragging.set(true)"
+    (dragleave)="dragging.set(false)"
+    (drop)="onDrop($event)"
+  >
+    <input type="file" accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" multiple hidden [disabled]="busy()" (change)="onPick($event)" />
+    <strong>{{ busy() ? 'Analisando…' : 'Arraste PDFs ou documentos Word aqui' }}</strong>
+    <span>ou clique para selecionar · PDF, DOCX, DOC · lote permitido</span>
+  </label>
+
+  @if (queue().length) {
+    <ul class="queue">
+      @for (e of queue(); track $index) {
+        <li [class]="e.state">
+          <span class="name" [title]="e.name">{{ e.name }}</span>
+          <span class="state">
+            @switch (e.state) {
+              @case ('waiting') { na fila }
+              @case ('analyzing') { {{ e.message ?? 'analisando…' }} }
+              @default { {{ e.message }} }
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -1,0 +1,38 @@
+<div class="flex h-full flex-col bg-ink-900">
+  <div class="flex flex-wrap items-center gap-1 border-b border-white/10 px-3 py-2 text-sm text-parchment-100">
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" title="Aproximar" aria-label="Aproximar" (click)="zoom(1.4)">＋</button>
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" title="Afastar" aria-label="Afastar" (click)="zoom(1 / 1.4)">－</button>
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" title="Página inteira" (click)="home()">Ajustar</button>
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" title="Girar 90° à esquerda" aria-label="Girar à esquerda" (click)="rotate(-90)">⟲</button>
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" title="Girar 90° à direita" aria-label="Girar à direita" (click)="rotate(90)">⟳</button>
+
+    <span class="mx-2 h-5 w-px bg-white/15"></span>
+
+    <button type="button" class="rounded px-2 py-1 hover:bg-white/10" [class.bg-white/20]="inverted()"
+            [attr.aria-pressed]="inverted()" title="Inverter cores: realça tintas claras" (click)="inverted.set(!inverted())">
+      Inverter
+    </button>
+    @if (enhancedUrl()) {
+      <button type="button" class="rounded px-2 py-1 hover:bg-white/10" [class.bg-white/20]="showEnhanced()"
+              [attr.aria-pressed]="showEnhanced()" title="Imagem tratada (tons de cinza + CLAHE) enviada à IA"
+              (click)="showEnhanced.set(!showEnhanced())">
+        Realce CLAHE
+      </button>
+    }
+
+    <label class="ml-2 flex items-center gap-1.5 text-xs text-parchment-200">
+      Contraste
+      <input type="range" min="50" max="250" class="w-20 accent-parchment-300" [value]="contrast()"
+             (input)="contrast.set(+$any($event.target).value)" />
+    </label>
+    <label class="flex items-center gap-1.5 text-xs text-parchment-200">
+      Brilho
+      <input type="range" min="50" max="200" class="w-20 accent-parchment-300" [value]="brightness()"
+             (input)="brightness.set(+$any($event.target).value)" />
+    </label>
+    <button type="button" class="rounded px-2 py-1 text-xs text-parchment-200 hover:bg-white/10" (click)="resetAdjustments()">
+      Restaurar
+    </button>
+  </div>
+  <div #osd class="min-h-0 flex-1" [style.filter]="cssFilter()" aria-label="Imagem do manuscrito original"></div>
+</div>

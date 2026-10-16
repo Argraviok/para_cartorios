@@ -1,0 +1,16 @@
+{
+  "name": "cartorio-antifraude",
+  "private": true,
+  "scripts": {
+    "dev": "npm run db && concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "db": "docker compose up -d",
+    "dev:api": "cd backend && .venv/bin/uvicorn app.main:app --reload --port 8060",
+    "dev:web": "cd frontend && npx ng serve --port 4260",
+    "setup": "cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt && cd ../frontend && npm install",
+    "seed": "cd backend && .venv/bin/python seed_signatures.py --samples",
+    "test": "cd backend && .venv/bin/python -m pytest -q"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

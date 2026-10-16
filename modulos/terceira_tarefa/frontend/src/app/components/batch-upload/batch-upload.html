@@ -1,0 +1,99 @@
+<section class="mx-auto max-w-screen-lg px-4 py-8 sm:px-6">
+  <h1 class="font-serif text-3xl font-semibold">Digitalização em lote</h1>
+  <p class="mt-1 text-sm text-ink-500">
+    Selecione as imagens das folhas geradas pelo digitalizador (JPEG, PNG ou TIFF). Cada folha passa por tratamento de
+    imagem, transcrição paleográfica pela IA e fica aguardando revisão humana.
+  </p>
+
+  <div class="mt-6 grid gap-3 rounded-xl border border-parchment-200 bg-white p-4 shadow-sm sm:grid-cols-4">
+    <div class="sm:col-span-2">
+      <label class="label" for="bt">Tipo de livro</label>
+      <select id="bt" class="field" [value]="bookType()" [disabled]="running()"
+              (change)="bookType.set($any($event.target).value)">
+        @for (bt of bookTypes; track bt) {
+          <option [value]="bt">{{ bookTypeLabels[bt] }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="label" for="bn">Livro nº</label>
+      <input id="bn" class="field" placeholder="3-K" maxlength="20" [value]="bookNumber()" [disabled]="running()"
+             (input)="bookNumber.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="label" for="fp">Folha inicial</label>
+      <input id="fp" type="number" min="1" class="field" [value]="firstPage()" [disabled]="running()"
+             (input)="setFirstPage($any($event.target).value)" />
+    </div>
+  </div>
+
+  <label for="files"
+         class="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition"
+         [class]="dragOver() ? 'border-sepia-600 bg-parchment-100' : 'border-parchment-300 bg-white hover:bg-parchment-50'"
+         (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
+    <span class="font-serif text-lg font-semibold text-ink-700">Arraste as folhas digitalizadas aqui</span>
+    <span class="mt-1 text-sm text-ink-500">ou clique para selecionar · as folhas são numeradas pela ordem dos nomes dos arquivos</span>
+    <input id="files" type="file" class="sr-only" multiple accept=".jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp"
+           (change)="onFiles($any($event.target).files); $any($event.target).value = ''" />
+  </label>
+
+  @if (items().length) {
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="text-sm text-ink-500" aria-live="polite">
+        {{ counts().total }} folha(s) · {{ counts().done }} concluída(s)
+        @if (counts().error) { · <span class="text-danger">{{ counts().error }} com erro</span> }
+      </div>
+      <div class="flex gap-2">
+        @if (counts().done) {
+          <button type="button" class="btn btn-ghost" [disabled]="running()" (click)="clearFinished()">Limpar concluídas</button>
+        }
+        <button type="button" class="btn btn-primary" [disabled]="!canStart()" (click)="start()">
+          {{ running() ? 'Processando…' : 'Iniciar transcrição' }}
+        </button>
+      </div>
+    </div>
+    @if (!bookNumber().trim()) {
+      <p class="mt-2 text-right text-xs text-warn">Informe o número do livro para iniciar.</p>
+    }
+
+    <ul class="mt-3 divide-y divide-parchment-200 overflow-hidden rounded-xl border border-parchment-200 bg-white">
+      @for (it of items(); track it.key) {
+        <li class="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+          <div class="w-20">
+            <label class="sr-only" [for]="'pg' + it.key">Folha</label>
+            <input type="number" min="1" class="field py-1" [id]="'pg' + it.key" [value]="it.page"
+                   [disabled]="it.state !== 'queued' || running()" (input)="setPage(it.key, $any($event.target).value)" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="truncate font-medium">{{ it.file.name }}</div>
+            <div class="text-xs text-ink-500">{{ sizeMb(it.file) | number: '1.1-1' }} MB</div>
+          </div>
+          <div class="flex items-center gap-3">
+            @switch (it.state) {
+              @case ('queued') {
+                <span class="text-ink-500">Na fila</span>
+                @if (!running()) {
+                  <button type="button" class="text-xs text-danger hover:underline" (click)="remove(it.key)">Remover</button>
+                }
+              }
+              @case ('processing') {
+                <span class="flex items-center gap-2 text-sepia-600">
+                  <span class="h-3 w-3 animate-spin rounded-full border-2 border-sepia-600 border-t-transparent"></span>
+                  Transcrevendo…
+                </span>
+              }
+              @case ('done') {
+                <span class="text-verified">✓ {{ (it.confidence ?? 0) * 100 | number: '1.0-0' }}% confiança</span>
+                <a class="btn btn-ghost py-1 text-xs" [routerLink]="['/records', it.recordId]">Revisar</a>
+              }
+              @case ('error') {
+                <span class="max-w-xs text-xs text-danger" [title]="it.error ?? ''">{{ it.error }}</span>
+                <button type="button" class="btn btn-ghost py-1 text-xs" (click)="retry(it.key)">Tentar novamente</button>
+              }
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de MVPs</title>
+<style>
+:root{
+  --bg:#f6f5f2; --surface:#ffffff; --surface-2:#f0eee9; --border:#e2dfd8;
+  --text:#1d1c1a; --muted:#6b6862; --accent:#3d5a80; --accent-soft:#e3eaf3;
+  --ok:#2f7a4f; --ok-soft:#e1f1e7; --warn:#9a6a12; --warn-soft:#f7ecd4; --bad:#b03a2e; --bad-soft:#f8e1de;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141413; --surface:#1d1c1b; --surface-2:#262523; --border:#33312e;
+  --text:#ecebe8; --muted:#9c9890; --accent:#8fb0d8; --accent-soft:#22303f;
+  --ok:#78c79a; --ok-soft:#1b3326; --warn:#e0b45e; --warn-soft:#3a2f17; --bad:#ec8a7f; --bad-soft:#3d1f1b;
+  --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413; --surface:#1d1c1b; --surface-2:#262523; --border:#33312e;
+  --text:#ecebe8; --muted:#9c9890; --accent:#8fb0d8; --accent-soft:#22303f;
+  --ok:#78c79a; --ok-soft:#1b3326; --warn:#e0b45e; --warn-soft:#3a2f17; --bad:#ec8a7f; --bad-soft:#3d1f1b;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 64px}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
+h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:4px 0 0}
+.theme{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:13px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
+.search{flex:1 1 240px;min-width:0;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font:inherit}
+.chip-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:5px 12px;cursor:pointer;font:inherit;font-size:13px}
+.chip-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.card-top{display:flex;gap:12px;align-items:flex-start}
+.card-top > div:nth-child(2){flex:1;min-width:0}
+.num{flex:none;width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.card h2{margin:0;font-size:17px;line-height:1.3}
+.folder{color:var(--muted);font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+.live{flex:none;font-size:12px;display:flex;align-items:center;gap:6px;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.live.on{color:var(--ok)} .live.on .dot{background:var(--ok)}
+.live.busy{color:var(--warn)} .live.busy .dot{background:var(--warn)}
+.desc{margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+.tag.ai{background:var(--accent-soft);color:var(--accent)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:13px}
+dt{color:var(--muted)} dd{margin:0;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.cmd{display:flex;gap:6px;align-items:center;background:var(--surface-2);border-radius:8px;padding:6px 6px 6px 10px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden}
+.cmd code{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.copy{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font:12px system-ui,sans-serif}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:4px}
+.links a{font-size:13px;text-decoration:none;color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+.links a:hover{background:var(--accent-soft)}
+.empty{color:var(--muted);text-align:center;padding:40px 0;display:none}
+footer{margin-top:32px;color:var(--muted);font-size:13px}
+footer code{background:var(--surface-2);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Painel de MVPs — Cartório AI</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <button class="theme" id="theme">Alternar tema</button>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <div class="toolbar">
+    <input class="search" id="q" type="search" placeholder="Buscar por nome, tema ou tecnologia…">
+    <div id="filters" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+
+  <main class="grid" id="grid"></main>
+  <p class="empty" id="empty">Nenhum projeto encontrado.</p>
+
+  <footer>
+    <p>Para atualizar o painel: <code>python3 ~/MVP_Cartorio/gerar_painel.py</code> (acrescente <code>--testes</code> para rodar os testes de novo).</p>
+    <p>Para subir todos juntos: <code>cd ~/MVP_Cartorio && npm run dev</code> (ou <code>node subir_todos.mjs quarta Sexta</code> para só alguns). Cada projeto tem portas próprias; Ctrl+C encerra tudo.</p>
+    <p>O status “No ar” é checado a cada 10 s nas portas da API.</p>
+  </footer>
+</div>
+
+<script>
+const DADOS = {"gerado_em": "16/10/2026 15:41", "projetos": [{"slug": "exame", "nome": "Exame Qualificativo", "dir": "Triagem_de_Documentos", "title": "Exame Qualificativo de Escrituras", "desc": "Lê o PDF de uma escritura e confere, com IA, regras de qualificação registral por tipo de ato (partes, outorga, especialidade do imóvel, certidões), com base legal de cada regra.", "area": "Registro de Imóveis", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 20", "MongoDB", "PyMuPDF"], "api": 8030, "web": 4230, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/Triagem_de_Documentos", "existe": true, "atualizado": "2026-10-16 12:24", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 48}, "readme": false, "testes": {"status": "sem_testes"}, "rodando": false}, {"slug": "notas", "nome": "Notas Devolutivas", "dir": "segunda_tarefa", "title": "Gerador de Notas Devolutivas", "desc": "Gera notas devolutivas fundamentadas a partir de fichas de precedentes, com busca vetorial + textual, numeração sem duplicidade, trava de emissão e controle de versão. Tem modo offline sem IA.", "area": "Registro de Imóveis", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 20", "MongoDB Vector Search", "Atlas Search"], "api": 8040, "web": 4240, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/segunda_tarefa", "existe": true, "atualizado": "2026-10-16 12:24", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 76}, "readme": true, "testes": {"status": "ok", "resumo": "45 passed in 4.35s", "passaram": 45, "em": "2026-10-16 12:14"}, "rodando": true}, {"slug": "transcricao", "nome": "Transcrição Histórica", "dir": "terceira_tarefa", "title": "Arquivo Digital — Transcrição Histórica", "desc": "Transcreve com IA páginas manuscritas e datilografadas de livros antigos (Livro 3, nascimento, casamento, óbito), com pré-processamento de imagem, busca fuzzy/fonética e revisão humana lado a lado.", "area": "Registro Civil / Imóveis", "ai": ["Claude"], "stack": ["FastAPI", "Angular 21", "MongoDB Atlas Search", "OpenCV"], "api": 8050, "web": 4250, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/terceira_tarefa", "existe": true, "atualizado": "2026-10-16 12:24", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 62}, "readme": true, "testes": {"status": "sem_testes"}, "rodando": true}, {"slug": "matricula", "nome": "Matrícula × Memorial", "dir": "quarta_parte", "title": "Confrontação de Matrícula e Memorial", "desc": "Audita matrícula, memorial descritivo e título (PDF/DOCX/DOC): continuidade dominial, ônus vigentes, reconstrução do perímetro, fechamento, área e plotagem do imóvel no mapa.", "area": "Registro de Imóveis", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 21", "MongoDB", "Shapely", "pyproj"], "api": 8010, "web": 4210, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/quarta_parte", "existe": true, "atualizado": "2026-10-14 15:02", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 75}, "readme": true, "testes": {"status": "ok", "resumo": "49 passed, 1 warning in 1.05s", "passaram": 49, "em": "2026-10-16 12:14"}, "rodando": true}, {"slug": "atendimento", "nome": "Atendimento", "dir": "Quinta_parte", "title": "Triagem, Atendimento e Emolumentos", "desc": "Atendimento conversacional (webchat/WhatsApp) que identifica o serviço, estima emolumentos e confere fotos de documentos. O escrevente acompanha num inbox em tempo real e pode assumir a conversa.", "area": "Tabelionato de Notas", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 21", "MongoDB", "Pillow"], "api": 8020, "web": 4220, "web_path": "/painel", "path": "/home/argraviok/MVP_Cartorio/modulos/Quinta_parte", "existe": true, "atualizado": "2026-10-14 15:54", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 74}, "readme": true, "testes": {"status": "ok", "resumo": "40 passed, 1 warning in 0.45s", "passaram": 40, "em": "2026-10-16 12:14"}, "rodando": true}, {"slug": "fraude", "nome": "Antifraude", "dir": "Sexta_parte", "title": "Prevenção à Fraude e Due Diligence", "desc": "Análise forense de documentos (ELA, metadados), cotejo de assinatura com cartão de firma e regras de procuração/CENSEC, gerando score de risco e decisão auditável. Arquivos criptografados (LGPD).", "area": "Tabelionato de Notas", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 20", "Tailwind", "MongoDB", "OpenCV"], "api": 8060, "web": 4260, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/Sexta_parte", "existe": true, "atualizado": "2026-10-16 12:24", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 70}, "readme": true, "testes": {"status": "ok", "resumo": "14 passed in 3.06s", "passaram": 14, "em": "2026-10-16 12:14"}, "rodando": true}, {"slug": "lgpd", "nome": "Tarjamento LGPD", "dir": "Setima_parte", "title": "Anonimização e Tarjamento LGPD", "desc": "Detecta dados sensíveis de terceiros em certidões e autos (regex + LLM), o escrevente revisa no Redaction Studio e o sistema aplica tarja destrutiva no PDF, com verificação e log de auditoria.", "area": "LGPD / Certidões", "ai": ["Gemini", "OpenAI"], "stack": ["FastAPI", "Angular 21", "MongoDB", "PyMuPDF"], "api": 8000, "web": 4200, "web_path": "/", "path": "/home/argraviok/MVP_Cartorio/modulos/Setima_parte", "existe": true, "atualizado": "2026-10-16 15:26", "git": {"ultimo_commit": "fatal: your current branch 'master' does not have any commits yet", "mensagem": "", "pendentes": 72}, "readme": true, "testes": {"status": "ok", "resumo": "9 passed, 1 warning in 1.92s", "passaram": 9, "em": "2026-10-16 12:14"}, "rodando": true}]};
+const P = DADOS.projetos;
+const fmt = d => d ? d.slice(0,10).split('-').reverse().join('/') + (d.length>10 ? ' ' + d.slice(11) : '') : '—';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('sub').textContent = `Módulos em ~/MVP_Cartorio/modulos · gerado em ${DADOS.gerado_em}`;
+
+const live = {};   // dir -> 'on' | 'busy' | 'off'
+
+function drawStats(){
+  const tested = P.filter(p=>p.testes && p.testes.status==='ok');
+  const total = tested.reduce((a,p)=>a+(p.testes.passaram||0),0);
+  const failing = P.filter(p=>p.testes && (p.testes.status==='falha'||p.testes.status==='erro')).length;
+  const running = P.filter(p=>live[p.dir]==='on').length;
+  document.getElementById('stats').innerHTML = [
+    [P.length,'projetos'],
+    [total,'testes passando'],
+    [failing ? `${failing}` : '0', failing ? 'projetos com falha' : 'falhas'],
+    [running,'no ar agora'],
+  ].map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+}
+
+const FILTERS = ['Todos','Registro de Imóveis','Tabelionato de Notas','Registro Civil','LGPD','Claude','Gemini'];
+let active = 'Todos';
+try { active = localStorage.getItem('mvp-filter') || 'Todos'; } catch(e){}
+if (!FILTERS.includes(active)) active = 'Todos';
+const fEl = document.getElementById('filters');
+function drawFilters(){
+  fEl.innerHTML = FILTERS.map(f=>`<button class="chip-btn" aria-pressed="${f===active}" data-f="${f}">${f}</button>`).join('');
+}
+fEl.addEventListener('click', e=>{
+  const f = e.target.dataset.f; if(!f) return;
+  active = f; try{localStorage.setItem('mvp-filter',f)}catch(e){}
+  drawFilters(); render();
+});
+
+function testBadge(t){
+  if (!t) return '<span class="badge warn">não verificado</span>';
+  if (t.status==='ok') return `<span class="badge ok" title="${esc(t.resumo)} · ${esc(t.em)}">${t.passaram} passando</span>`;
+  if (t.status==='sem_testes') return '<span class="badge warn">sem testes</span>';
+  return `<span class="badge bad" title="${esc(t.resumo||'')}">falhando</span>`;
+}
+function gitBadge(g){
+  if (!g) return '<span class="badge warn">sem git</span>';
+  const pend = g.pendentes ? ` · <span class="badge warn">${g.pendentes} alteração(ões) sem commit</span>` : '';
+  return `${fmt(g.ultimo_commit)}${pend}`;
+}
+function liveTag(p){
+  const s = live[p.dir];
+  if (s==='on') return '<span class="live on"><span class="dot"></span>No ar</span>';
+  if (s==='busy') return '<span class="live busy" title="Outro projeto está usando esta porta"><span class="dot"></span>Porta ocupada</span>';
+  return '<span class="live"><span class="dot"></span>Parado</span>';
+}
+
+function card(p, i){
+  const path = p.path;
+  const cmd = `cd ${path} && npm run dev`;
+  return `<article class="card">
+    <div class="card-top">
+      <div class="num">${i+1}</div>
+      <div><h2>${esc(p.title)}</h2><div class="folder">~/${esc(p.dir)}</div></div>
+      ${liveTag(p)}
+    </div>
+    <p class="desc">${esc(p.desc)}</p>
+    <div class="tags">
+      ${p.ai.map(a=>`<span class="tag ai">${a}</span>`).join('')}
+      ${p.stack.map(s=>`<span class="tag">${s}</span>`).join('')}
+    </div>
+    <dl>
+      <dt>Área</dt><dd>${esc(p.area)}</dd>
+      <dt>Testes</dt><dd>${testBadge(p.testes)}</dd>
+      <dt>Portas</dt><dd>API ${p.api} · web ${p.web}</dd>
+      <dt>Última alteração</dt><dd>${fmt(p.atualizado)}</dd>
+      <dt>Último commit</dt><dd>${gitBadge(p.git)}</dd>
+    </dl>
+    <div class="cmd"><code>${esc(cmd)}</code><button class="copy" data-copy="${esc(cmd)}">Copiar</button></div>
+    <div class="links">
+      <a href="file://${path}/">Abrir pasta</a>
+      <a href="vscode://file${path}/">VS Code</a>
+      ${p.readme?`<a href="file://${path}/README.md">README</a>`:''}
+      ${live[p.dir]==='on'?`<a href="http://localhost:${p.web}${p.web_path}" target="_blank" rel="noopener">Abrir app</a><a href="http://localhost:${p.api}/docs" target="_blank" rel="noopener">API docs</a>`:''}
+    </div>
+  </article>`;
+}
+
+const q = document.getElementById('q');
+function render(){
+  const term = q.value.trim().toLowerCase();
+  const list = P.map((p,i)=>[p,i]).filter(([p])=>{
+    const hay = [p.title,p.desc,p.dir,p.area,...p.ai,...p.stack].join(' ').toLowerCase();
+    const okF = active==='Todos' || p.area.includes(active) || p.ai.includes(active);
+    return okF && (!term || hay.includes(term));
+  });
+  document.getElementById('grid').innerHTML = list.map(([p,i])=>card(p,i)).join('');
+  document.getElementById('empty').style.display = list.length ? 'none' : 'block';
+  drawStats();
+}
+q.addEventListener('input', render);
+
+document.getElementById('grid').addEventListener('click', e=>{
+  const b = e.target.closest('.copy'); if(!b) return;
+  navigator.clipboard?.writeText(b.dataset.copy).then(()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar',1200); });
+});
+
+// Status ao vivo: a porta da API respondeu? Quem é o dono vem da geração (p.rodando).
+async function ping(port){
+  try { await fetch(`http://localhost:${port}/docs`, {mode:'no-cors', cache:'no-store', signal: AbortSignal.timeout(1500)}); return true; }
+  catch(e){ return false; }
+}
+async function checkLive(){
+  const ports = [...new Set(P.map(p=>p.api))];
+  const up = Object.fromEntries(await Promise.all(ports.map(async pt=>[pt, await ping(pt)])));
+  for (const p of P){
+    if (!up[p.api]) live[p.dir] = 'off';
+    else {
+      const sharing = P.filter(o=>o.api===p.api);
+      const owner = sharing.find(o=>o.rodando);
+      live[p.dir] = (owner ? owner.dir===p.dir : sharing.length===1) ? 'on' : 'busy';
+    }
+  }
+  render();
+}
+
+const root = document.documentElement;
+try { const t = localStorage.getItem('mvp-theme'); if(t) root.dataset.theme = t; } catch(e){}
+document.getElementById('theme').addEventListener('click', ()=>{
+  const dark = root.dataset.theme ? root.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try{localStorage.setItem('mvp-theme',root.dataset.theme)}catch(e){}
+});
+
+for (const p of P) live[p.dir] = p.rodando ? 'on' : 'off';
+drawFilters(); render(); checkLive(); setInterval(checkLive, 10000);
+</script>
+</body>
+</html>
